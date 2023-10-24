@@ -8,6 +8,7 @@ requests = "*"
 typer = {extras = ["all"], version = "*"}
 netcdf4 = "*"
 pandas = "*"
+dash = "*"
 
 [dev-packages]
 pytest = "*"
