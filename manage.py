@@ -1,8 +1,7 @@
 import logging
+from typing_extensions import Annotated
 
 import typer
-
-from data.tasks import debug_task
 
 
 logging.basicConfig(
@@ -15,11 +14,27 @@ app = typer.Typer()
 
 
 @app.command()
-def debug_command() -> None:
+def invoke_etl() -> None:
     """
-    Debug command.
+    Invoke ETL pipeline.
     """
-    logging.info(f"{debug_task()=}")
+    from data.etl.etl_pipeline import ETLPipeline
+    from data.loaders.local_csv_loader import LocalCSVLoader
+
+    _l = LocalCSVLoader()
+    etl_pipeline = ETLPipeline(load_strategy=_l)
+    etl_pipeline.invoke()
+
+
+# TODO: Reconsider using static HTML site with D3.js instead of Dash.
+@app.command()
+def dash_app(debug: Annotated[bool, typer.Option(help="Debug mode.")] = False) -> None:
+    """
+    Run dash app.
+    """
+    from dash_app.app import app
+
+    app.run(debug=debug)
 
 
 if __name__ == "__main__":
