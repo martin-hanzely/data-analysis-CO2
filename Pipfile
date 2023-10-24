@@ -6,6 +6,8 @@ name = "pypi"
 [packages]
 requests = "*"
 typer = {extras = ["all"], version = "*"}
+netcdf4 = "*"
+pandas = "*"
 
 [dev-packages]
 pytest = "*"
