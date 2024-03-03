@@ -36,5 +36,17 @@ def dash_app(debug: Annotated[bool, typer.Option(help="Debug mode.")] = False) -
     app.run(debug=debug)
 
 
+@app.command()
+def debug_command() -> None:
+    """
+    Debug command.
+    """
+    import datetime
+    from data.extractors.opendap_extractor import OpendapExtractor
+
+    extractor = OpendapExtractor()
+    extractor.extract_for_date(datetime.date(2024, 2, 1))
+
+
 if __name__ == "__main__":
     app()
