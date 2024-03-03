@@ -26,7 +26,6 @@ def invoke_etl() -> None:
     etl_pipeline.invoke()
 
 
-# TODO: Reconsider using static HTML site with D3.js instead of Dash.
 @app.command()
 def dash_app(debug: Annotated[bool, typer.Option(help="Debug mode.")] = False) -> None:
     """
