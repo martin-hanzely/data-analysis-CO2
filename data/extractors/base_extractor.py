@@ -9,8 +9,10 @@ if TYPE_CHECKING:
     import pandas as pd
 
 
-class BaseExtractor(ABC):
-
+class BaseExtractor(ABC):  # TODO: Add method to extract date range.
+    """
+    Abstract base class for data extractors.
+    """
     @abstractmethod
     def extract_for_date(self, date: datetime.date) -> pd.DataFrame:
         """
