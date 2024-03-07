@@ -90,16 +90,49 @@ class TestGetOpendapUrls:
         </thredds:dataset>
     </thredds:dataset>
 </thredds:catalog>"""
-        urls = get_opendap_urls(xml)
+        urls = list(get_opendap_urls(xml))
         assert urls == [
             "https://oco2.gesdisc.eosdis.nasa.gov/opendap/hyrax/OCO2_L2_Standard.11/2024/062/oco2_L2StdND_51418a_240302_B11008_240303020002.h5",
             "https://oco2.gesdisc.eosdis.nasa.gov/opendap/hyrax/OCO2_L2_Standard.11/2024/062/oco2_L2StdND_51420a_240302_B11008_240303021304.h5",
         ]
 
+    def test_get_opendap_urls__file_suffix(self):
+        xml = b"""\
+<thredds:catalog xmlns:thredds="http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:bes="http://xml.opendap.org/ns/bes/1.0#">
+    <thredds:service name="dap" serviceType="OPeNDAP" base="/opendap/hyrax"/>
+    <thredds:dataset name="/OCO2_L2_Standard.11/2024/062" ID="/opendap/hyrax/OCO2_L2_Standard.11/2024/062/">
+        <thredds:dataset name="oco2_L2StdND_51418a_240302_B11008_240303020002.h5" ID="/opendap/hyrax/OCO2_L2_Standard.11/2024/062/oco2_L2StdND_51418a_240302_B11008_240303020002.h5">
+            <thredds:access serviceName="dap" urlPath="/OCO2_L2_Standard.11/2024/062/oco2_L2StdND_51418a_240302_B11008_240303020002.h5"/>
+        </thredds:dataset>
+        </thredds:dataset>
+</thredds:catalog>"""
+        urls = list(get_opendap_urls(xml, file_suffix=".nc4"))
+        assert urls == [
+            "https://oco2.gesdisc.eosdis.nasa.gov/opendap/hyrax/OCO2_L2_Standard.11/2024/062/oco2_L2StdND_51418a_240302_B11008_240303020002.h5.nc4",
+        ]
+
+    def test_get_opendap_urls__variables(self):
+            xml = b"""\
+    <thredds:catalog xmlns:thredds="http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:bes="http://xml.opendap.org/ns/bes/1.0#">
+        <thredds:service name="dap" serviceType="OPeNDAP" base="/opendap/hyrax"/>
+        <thredds:dataset name="/OCO2_L2_Standard.11/2024/062" ID="/opendap/hyrax/OCO2_L2_Standard.11/2024/062/">
+            <thredds:dataset name="oco2_L2StdND_51418a_240302_B11008_240303020002.h5" ID="/opendap/hyrax/OCO2_L2_Standard.11/2024/062/oco2_L2StdND_51418a_240302_B11008_240303020002.h5">
+                <thredds:access serviceName="dap" urlPath="/OCO2_L2_Standard.11/2024/062/oco2_L2StdND_51418a_240302_B11008_240303020002.h5"/>
+            </thredds:dataset>
+            </thredds:dataset>
+    </thredds:catalog>"""
+            urls = list(get_opendap_urls(
+                xml,
+                variables=["RetrievalGeometry_retrieval_latitude", "RetrievalGeometry_retrieval_longitude"]
+            ))
+            assert urls == [
+                "https://oco2.gesdisc.eosdis.nasa.gov/opendap/hyrax/OCO2_L2_Standard.11/2024/062/oco2_L2StdND_51418a_240302_B11008_240303020002.h5?RetrievalGeometry_retrieval_latitude,RetrievalGeometry_retrieval_longitude",
+            ]
+
     def test_get_opendap_urls__invalid_xml(self):
         xml = b"invalid xml"
         with pytest.raises(THREDDSCatalogError) as e:
-            get_opendap_urls(xml)
+            list(get_opendap_urls(xml))
         assert str(e.value).startswith("THREDDS catalog parsing error")
 
     def test_get_opendap_urls__missing_dap_service(self):
@@ -109,7 +142,7 @@ class TestGetOpendapUrls:
     <thredds:service name="WCS-coads" serviceType="WCS" base="/opendap/wcs"/>
 </thredds:catalog>"""
         with pytest.raises(THREDDSCatalogError) as e:
-            get_opendap_urls(xml)
+            list(get_opendap_urls(xml))
         assert str(e.value) == "OPeNDAP service not found in THREDDS catalog"
 
     def test_get_opendap_urls__missing_service_base(self):
@@ -120,7 +153,7 @@ class TestGetOpendapUrls:
     <thredds:service name="WCS-coads" serviceType="WCS" base="/opendap/wcs"/>
 </thredds:catalog>"""
         with pytest.raises(THREDDSCatalogError) as e:
-            get_opendap_urls(xml)
+            list(get_opendap_urls(xml))
         assert str(e.value) == "OPeNDAP service base not found in THREDDS catalog"
 
     def test_get_opendap_urls__missing_top_level_dataset(self):
@@ -129,7 +162,7 @@ class TestGetOpendapUrls:
     <thredds:service name="dap" serviceType="OPeNDAP" base="/opendap/hyrax"/>
 </thredds:catalog>"""
         with pytest.raises(THREDDSCatalogError) as e:
-            get_opendap_urls(xml)
+            list(get_opendap_urls(xml))
         assert str(e.value) == "THREDDS catalog top level dataset not found"
 
     def test_get_opendap_urls__missing_dataset_access(self):
@@ -144,5 +177,5 @@ class TestGetOpendapUrls:
         </thredds:dataset>
     </thredds:dataset>
 </thredds:catalog>"""
-        urls = get_opendap_urls(xml)
+        urls = list(get_opendap_urls(xml))
         assert urls == []

@@ -1,5 +1,6 @@
 import datetime
 
+from typing import Iterator, Iterable
 from xml.etree import ElementTree
 
 import requests
@@ -43,11 +44,17 @@ def get_thredds_catalog_xml(catalog_url: str) -> str | bytes:
     return response.content
 
 
-def get_opendap_urls(catalog_xml: str | bytes) -> list[str]:
+def get_opendap_urls(
+        catalog_xml: str | bytes,
+        file_suffix: str = "",
+        variables: Iterable[str] | None = None,
+) -> Iterator[str]:
     """
     Get list of OPeNDAP urls from given THREDDS catalog XML.
     https://docs.unidata.ucar.edu/tds/current/userguide/basic_client_catalog.html
     :param catalog_xml: THREDDS catalog XML.
+    :param file_suffix: File suffix indicating dataset format.
+    :param variables: List of variables to filter datasets.
     :return: List of OPeNDAP urls.
     """
     # noinspection HttpUrlsUsage
@@ -71,14 +78,16 @@ def get_opendap_urls(catalog_xml: str | bytes) -> list[str]:
     if top_level_dataset is None:
         raise THREDDSCatalogError("THREDDS catalog top level dataset not found")
 
-    urls = []
+    if variables:  # Handle both empty list and None.
+        variables_suffix = f'?{",".join(variables)}'
+    else:
+        variables_suffix = ""
+
     for dataset in top_level_dataset.findall("thredds:dataset", xml_ns):
         try:
             if dataset.attrib["name"].endswith(".h5"):
                 access = dataset.find(f"thredds:access[@serviceName='{service_name}']", xml_ns)
                 if access is not None:
-                    urls.append(f'{BASE_URL}{service_base}{access.attrib["urlPath"]}')
+                    yield f'{BASE_URL}{service_base}{access.attrib["urlPath"]}{file_suffix}{variables_suffix}'
         except KeyError:
             continue  # Skip dataset without access
-
-    return urls

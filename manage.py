@@ -42,9 +42,11 @@ def debug_command() -> None:
     Debug command.
     """
     import datetime
+    from data.conf import get_app_settings
     from data.extractors.opendap_extractor import OpendapExtractor
 
-    extractor = OpendapExtractor()
+    settings = get_app_settings()
+    extractor = OpendapExtractor(settings)
     extractor.extract_for_date(datetime.date(2024, 2, 1))
 
 
