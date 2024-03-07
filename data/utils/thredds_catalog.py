@@ -1,32 +1,18 @@
-import datetime
+from __future__ import annotations
 
-from typing import Iterator, Iterable
+from typing import TYPE_CHECKING
 from xml.etree import ElementTree
 
 import requests
 
-
-BASE_URL = "https://oco2.gesdisc.eosdis.nasa.gov"
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Iterator
 
 
 class THREDDSCatalogError(Exception):
     """
     Exception raised for errors in THREDDS catalog processing.
     """
-
-
-def get_thredds_catalog_url_for_date(date: datetime.date) -> str:
-    """
-    Get THREDDS catalog URL for given date from OCO2_L2_Standard.11
-    directory on the NASA Earth Data GES DISC OPeNDAP server.
-    https://oco2.gesdisc.eosdis.nasa.gov/opendap/OCO2_L2_Standard.11/contents.html
-    :param date: Date for which to get THREDDS catalog URL.
-    :return: THREDDS catalog URL.
-    """
-    home_dir = "opendap/OCO2_L2_Standard.11"
-    year = date.year
-    doy = date.timetuple().tm_yday
-    return f"{BASE_URL}/{home_dir}/{year}/{doy:03}/catalog.xml"
 
 
 def get_thredds_catalog_xml(catalog_url: str) -> str | bytes:
@@ -53,9 +39,9 @@ def get_opendap_urls(
     Get list of OPeNDAP urls from given THREDDS catalog XML.
     https://docs.unidata.ucar.edu/tds/current/userguide/basic_client_catalog.html
     :param catalog_xml: THREDDS catalog XML.
-    :param file_suffix: File suffix indicating dataset format.
-    :param variables: List of variables to filter datasets.
-    :return: List of OPeNDAP urls.
+    :param file_suffix: Additional file suffix indicating dataset format.
+    :param variables: List of requested variables.
+    :return: Iterable of OPeNDAP urls.
     """
     # noinspection HttpUrlsUsage
     xml_ns = {"thredds": "http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0"}
@@ -85,9 +71,8 @@ def get_opendap_urls(
 
     for dataset in top_level_dataset.findall("thredds:dataset", xml_ns):
         try:
-            if dataset.attrib["name"].endswith(".h5"):
-                access = dataset.find(f"thredds:access[@serviceName='{service_name}']", xml_ns)
-                if access is not None:
-                    yield f'{BASE_URL}{service_base}{access.attrib["urlPath"]}{file_suffix}{variables_suffix}'
+            access = dataset.find(f"thredds:access[@serviceName='{service_name}']", xml_ns)
+            if access is not None:
+                yield f'{service_base}{access.attrib["urlPath"]}{file_suffix}{variables_suffix}'
         except KeyError:
             continue  # Skip dataset without access

@@ -1,23 +1,11 @@
-import datetime
-
 import pytest
 import requests
 
 from data.utils.thredds_catalog import (
     THREDDSCatalogError,
-    get_thredds_catalog_url_for_date,
     get_thredds_catalog_xml,
     get_opendap_urls,
 )
-
-
-class TestGetThreddsCatalogUrlForDate:
-
-    def test_get_thredds_catalog_url_for_date(self):
-        date = datetime.date(2024, 3, 2)
-        expected = "https://oco2.gesdisc.eosdis.nasa.gov/opendap/OCO2_L2_Standard.11/2024/062/catalog.xml"
-        url = get_thredds_catalog_url_for_date(date)
-        assert url == expected
 
 
 class TestGetThreddsCatalogXml:
@@ -36,7 +24,7 @@ class TestGetThreddsCatalogXml:
             return MockResponse()
 
         monkeypatch.setattr(requests, "get", mock_requests_get)
-        url = "https://oco2.gesdisc.eosdis.nasa.gov/opendap/OCO2_L2_Standard.11/2024/062/catalog.xml"
+        url = "https://validurl.com/opendap/OCO2_L2_Standard.11/2024/062/catalog.xml"
         xml = get_thredds_catalog_xml(url)
         assert xml == b'<?xml version="1.0" encoding="UTF-8"?>'
 
@@ -92,8 +80,8 @@ class TestGetOpendapUrls:
 </thredds:catalog>"""
         urls = list(get_opendap_urls(xml))
         assert urls == [
-            "https://oco2.gesdisc.eosdis.nasa.gov/opendap/hyrax/OCO2_L2_Standard.11/2024/062/oco2_L2StdND_51418a_240302_B11008_240303020002.h5",
-            "https://oco2.gesdisc.eosdis.nasa.gov/opendap/hyrax/OCO2_L2_Standard.11/2024/062/oco2_L2StdND_51420a_240302_B11008_240303021304.h5",
+            "/opendap/hyrax/OCO2_L2_Standard.11/2024/062/oco2_L2StdND_51418a_240302_B11008_240303020002.h5",
+            "/opendap/hyrax/OCO2_L2_Standard.11/2024/062/oco2_L2StdND_51420a_240302_B11008_240303021304.h5",
         ]
 
     def test_get_opendap_urls__file_suffix(self):
@@ -108,7 +96,7 @@ class TestGetOpendapUrls:
 </thredds:catalog>"""
         urls = list(get_opendap_urls(xml, file_suffix=".nc4"))
         assert urls == [
-            "https://oco2.gesdisc.eosdis.nasa.gov/opendap/hyrax/OCO2_L2_Standard.11/2024/062/oco2_L2StdND_51418a_240302_B11008_240303020002.h5.nc4",
+            "/opendap/hyrax/OCO2_L2_Standard.11/2024/062/oco2_L2StdND_51418a_240302_B11008_240303020002.h5.nc4",
         ]
 
     def test_get_opendap_urls__variables(self):
@@ -126,7 +114,7 @@ class TestGetOpendapUrls:
                 variables=["RetrievalGeometry_retrieval_latitude", "RetrievalGeometry_retrieval_longitude"]
             ))
             assert urls == [
-                "https://oco2.gesdisc.eosdis.nasa.gov/opendap/hyrax/OCO2_L2_Standard.11/2024/062/oco2_L2StdND_51418a_240302_B11008_240303020002.h5?RetrievalGeometry_retrieval_latitude,RetrievalGeometry_retrieval_longitude",
+                "/opendap/hyrax/OCO2_L2_Standard.11/2024/062/oco2_L2StdND_51418a_240302_B11008_240303020002.h5?RetrievalGeometry_retrieval_latitude,RetrievalGeometry_retrieval_longitude",
             ]
 
     def test_get_opendap_urls__invalid_xml(self):

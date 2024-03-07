@@ -43,11 +43,11 @@ def debug_command() -> None:
     """
     import datetime
     from data.conf import get_app_settings
-    from data.extractors.opendap_extractor import OpendapExtractor
+    from data.extractors.opendap_extractor_L2_Standard import OpendapExtractorL2Standard
 
     settings = get_app_settings()
-    extractor = OpendapExtractor(settings)
-    extractor.extract_for_date(datetime.date(2024, 2, 1))
+    extractor = OpendapExtractorL2Standard(settings)
+    extractor.extract_date_range([datetime.date(2024, 2, 1)])
 
 
 if __name__ == "__main__":
