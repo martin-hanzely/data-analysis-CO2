@@ -2,20 +2,18 @@ from __future__ import annotations
 
 import datetime
 import logging
-import tempfile
-import os
 from typing import TYPE_CHECKING
 
 # noinspection PyPep8Naming
 import netCDF4 as nc
 import pandas as pd
-import requests
 
 from data.extractors.base_extractor import BaseExtractor
-from data.utils.thredds_catalog import (
+from data.utils.opendap import (
     THREDDSCatalogError,
     get_thredds_catalog_xml,
     get_opendap_urls,
+    get_file_from_opendap_url,
 )
 
 if TYPE_CHECKING:
@@ -75,16 +73,10 @@ class OpendapExtractorL2Standard(BaseExtractor):
         return f"{self._settings.earthdata_base_url}/{home_dir}/{year}/{doy:03}/catalog.xml"
 
     def get_dataframe_from_opendap_url(self, url: str) -> pd.DataFrame:
-        # Named temporary file is required here because netCDF4 cannot read from a file-like object.
-        # noinspection DuplicatedCode
-        _f = tempfile.NamedTemporaryFile(delete=False)
-        with requests.Session() as session:
-            session.auth = (self._settings.earthdata_username, self._settings.earthdata_password)
-            response = session.get(url)
-            _f.write(response.content)
-            _f.close()
-
-        with nc.Dataset(_f.name, mode="r") as ds:
+        with (
+            get_file_from_opendap_url(url) as _f,
+            nc.Dataset(_f.name, mode="r") as ds
+        ):
             retrieval_time_string = nc.chartostring(ds["RetrievalHeader_retrieval_time_string"][:])
             df = pd.DataFrame({
                 "datetime": pd.to_datetime(retrieval_time_string, format="%Y-%m-%dT%H:%M:%S.%fZ"),
@@ -93,9 +85,7 @@ class OpendapExtractorL2Standard(BaseExtractor):
                 "xco2": ds["RetrievalResults_xco2"][:],
                 "RetrievalResults_outcome_flag": ds["RetrievalResults_outcome_flag"][:],
             })
-
-        os.unlink(_f.name)  # Delete temporary file.
-        return self.clean_dataframe(df)
+            return self.clean_dataframe(df)
 
     @staticmethod
     def clean_dataframe(df: pd.DataFrame) -> pd.DataFrame:

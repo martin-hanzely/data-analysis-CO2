@@ -17,8 +17,11 @@ class TestOpendapExtractorL2Standard:
         assert url == expected
 
     def test_clean_dataframe(self):
-        df = pd.DataFrame({"a": [1, 2, 3], "RetrievalResults_outcome_flag": [0, 1, 0]})
-        expected = pd.DataFrame({"a": [2]})
+        df = pd.DataFrame({
+            "xco2": [0.0001, 0.0002, 0.0003],
+            "RetrievalResults_outcome_flag": [0, 1, 0]
+        })
+        expected = pd.DataFrame({"xco2": [200.0]})
 
         clean_df = OpendapExtractorL2Standard.clean_dataframe(df)
         clean_df.reset_index(inplace=True, drop=True)  # Reset index to compare.

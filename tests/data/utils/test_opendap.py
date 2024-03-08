@@ -1,10 +1,13 @@
+import os
+
 import pytest
 import requests
 
-from data.utils.thredds_catalog import (
+from data.utils.opendap import (
     THREDDSCatalogError,
     get_thredds_catalog_xml,
     get_opendap_urls,
+    get_file_from_opendap_url,
 )
 
 
@@ -168,3 +171,33 @@ class TestGetOpendapUrls:
 </thredds:catalog>"""
         urls = list(get_opendap_urls(xml, base_url="https://someurl.com"))
         assert urls == []
+
+
+class TestGetFileFromOpendapUrl:
+
+    def test_get_file_from_opendap_url(self, monkeypatch):
+        # noinspection PyUnusedLocal
+        def mock_session_get(*args, **kwargs):
+            class MockResponse:
+                def raise_for_status(self):
+                    pass
+
+                @property
+                def content(self):
+                    return b"file content"
+
+            return MockResponse()
+
+        monkeypatch.setattr(requests.Session, "get", mock_session_get)
+        url = "https://someurl.com/opendap/file.nc4"
+        username = "username"
+        password = "password"
+
+        with (
+            get_file_from_opendap_url(url, username, password) as _f,
+            open(_f.name, "rb") as open_file,
+        ):
+            assert open_file.read() == b"file content"
+
+        assert _f.closed
+        assert not os.path.exists(_f.name)

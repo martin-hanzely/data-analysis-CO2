@@ -2,20 +2,18 @@ from __future__ import annotations
 
 import datetime
 import logging
-import tempfile
-import os
 from typing import TYPE_CHECKING
 
 # noinspection PyPep8Naming
 import netCDF4 as nc
 import pandas as pd
-import requests
 
 from data.extractors.base_extractor import BaseExtractor
-from data.utils.thredds_catalog import (
+from data.utils.opendap import (
     THREDDSCatalogError,
     get_thredds_catalog_xml,
     get_opendap_urls,
+    get_file_from_opendap_url,
 )
 
 if TYPE_CHECKING:
@@ -63,15 +61,10 @@ class OpendapExtractorL2LiteFP(BaseExtractor):
         return f"{self._settings.earthdata_base_url}/{home_dir}/{year}/catalog.xml"
 
     def get_dataframe_from_opendap_url(self, url: str) -> pd.DataFrame:
-        # noinspection DuplicatedCode
-        _f = tempfile.NamedTemporaryFile(delete=False)
-        with requests.Session() as session:
-            session.auth = (self._settings.earthdata_username, self._settings.earthdata_password)
-            response = session.get(url)
-            _f.write(response.content)
-            _f.close()
-
-        with nc.Dataset(_f.name, mode="r") as ds:
+        with (
+            get_file_from_opendap_url(url) as _f,
+            nc.Dataset(_f.name, mode="r") as ds
+        ):
             df = pd.DataFrame({
                 "datetime": pd.to_datetime(ds["time"][:], unit="s", origin="1970-01-01"),
                 "latitude": ds["latitude"][:],
@@ -80,13 +73,12 @@ class OpendapExtractorL2LiteFP(BaseExtractor):
                 "xco2_quality_flag": ds["xco2_quality_flag"][:],
             })
 
-        os.unlink(_f.name)  # Delete temporary file.
         return self.clean_dataframe(df)
 
     def get_opendap_urls_dict_for_year(self, year: int) -> dict[str, str]:
         """
         Get dictionary of OPeNDAP URLs for given year mapped to date strings in format YYMMDD.
-        :param year: Year.
+        :param year:
         :return:
         """
         try:

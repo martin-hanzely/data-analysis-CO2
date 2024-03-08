@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import contextlib
+import os
+import tempfile
 from typing import TYPE_CHECKING
 from xml.etree import ElementTree
 
@@ -80,3 +83,30 @@ def get_opendap_urls(
 
             # TODO: Handle slashes in url components.
             yield f'{base_url}{service_base}{url_path}{file_suffix}{variables_suffix}'
+
+
+@contextlib.contextmanager
+def get_file_from_opendap_url(
+        url: str,
+        username: str,
+        password: str,
+) -> Iterator[tempfile.NamedTemporaryFile]:
+    """
+    Context manager to get a file from an OPeNDAP URL as a named temporary file.
+    Yields closed file object. The file is deleted when the context manager is exited.
+    :param url:
+    :param username:
+    :param password:
+    :return:
+    """
+    _f = tempfile.NamedTemporaryFile(delete=False)
+    try:
+        with requests.Session() as session:
+            session.auth = (username, password)
+            response = session.get(url)
+            _f.write(response.content)
+            _f.close()
+
+        yield _f
+    finally:
+        os.unlink(_f.name)
