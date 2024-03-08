@@ -1,5 +1,3 @@
-import datetime
-
 import pandas as pd
 
 from data.extractors.opendap_extractor_L2_Lite_FP import OpendapExtractorL2LiteFP
