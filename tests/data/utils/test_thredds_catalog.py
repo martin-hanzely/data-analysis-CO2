@@ -78,10 +78,10 @@ class TestGetOpendapUrls:
         </thredds:dataset>
     </thredds:dataset>
 </thredds:catalog>"""
-        urls = list(get_opendap_urls(xml))
+        urls = list(get_opendap_urls(xml, base_url="https://someurl.com"))
         assert urls == [
-            "/opendap/hyrax/OCO2_L2_Standard.11/2024/062/oco2_L2StdND_51418a_240302_B11008_240303020002.h5",
-            "/opendap/hyrax/OCO2_L2_Standard.11/2024/062/oco2_L2StdND_51420a_240302_B11008_240303021304.h5",
+            "https://someurl.com/opendap/hyrax/OCO2_L2_Standard.11/2024/062/oco2_L2StdND_51418a_240302_B11008_240303020002.h5",
+            "https://someurl.com/opendap/hyrax/OCO2_L2_Standard.11/2024/062/oco2_L2StdND_51420a_240302_B11008_240303021304.h5",
         ]
 
     def test_get_opendap_urls__file_suffix(self):
@@ -94,9 +94,9 @@ class TestGetOpendapUrls:
         </thredds:dataset>
         </thredds:dataset>
 </thredds:catalog>"""
-        urls = list(get_opendap_urls(xml, file_suffix=".nc4"))
+        urls = list(get_opendap_urls(xml, base_url="https://someurl.com", file_suffix=".nc4"))
         assert urls == [
-            "/opendap/hyrax/OCO2_L2_Standard.11/2024/062/oco2_L2StdND_51418a_240302_B11008_240303020002.h5.nc4",
+            "https://someurl.com/opendap/hyrax/OCO2_L2_Standard.11/2024/062/oco2_L2StdND_51418a_240302_B11008_240303020002.h5.nc4",
         ]
 
     def test_get_opendap_urls__variables(self):
@@ -111,16 +111,17 @@ class TestGetOpendapUrls:
     </thredds:catalog>"""
             urls = list(get_opendap_urls(
                 xml,
+                base_url="https://someurl.com",
                 variables=["RetrievalGeometry_retrieval_latitude", "RetrievalGeometry_retrieval_longitude"]
             ))
             assert urls == [
-                "/opendap/hyrax/OCO2_L2_Standard.11/2024/062/oco2_L2StdND_51418a_240302_B11008_240303020002.h5?RetrievalGeometry_retrieval_latitude,RetrievalGeometry_retrieval_longitude",
+                "https://someurl.com/opendap/hyrax/OCO2_L2_Standard.11/2024/062/oco2_L2StdND_51418a_240302_B11008_240303020002.h5?RetrievalGeometry_retrieval_latitude,RetrievalGeometry_retrieval_longitude",
             ]
 
     def test_get_opendap_urls__invalid_xml(self):
         xml = b"invalid xml"
         with pytest.raises(THREDDSCatalogError) as e:
-            list(get_opendap_urls(xml))
+            list(get_opendap_urls(xml, base_url="https://someurl.com"))
         assert str(e.value).startswith("THREDDS catalog parsing error")
 
     def test_get_opendap_urls__missing_dap_service(self):
@@ -130,7 +131,7 @@ class TestGetOpendapUrls:
     <thredds:service name="WCS-coads" serviceType="WCS" base="/opendap/wcs"/>
 </thredds:catalog>"""
         with pytest.raises(THREDDSCatalogError) as e:
-            list(get_opendap_urls(xml))
+            list(get_opendap_urls(xml, base_url="https://someurl.com"))
         assert str(e.value) == "OPeNDAP service not found in THREDDS catalog"
 
     def test_get_opendap_urls__missing_service_base(self):
@@ -141,7 +142,7 @@ class TestGetOpendapUrls:
     <thredds:service name="WCS-coads" serviceType="WCS" base="/opendap/wcs"/>
 </thredds:catalog>"""
         with pytest.raises(THREDDSCatalogError) as e:
-            list(get_opendap_urls(xml))
+            list(get_opendap_urls(xml, base_url="https://someurl.com"))
         assert str(e.value) == "OPeNDAP service base not found in THREDDS catalog"
 
     def test_get_opendap_urls__missing_top_level_dataset(self):
@@ -150,7 +151,7 @@ class TestGetOpendapUrls:
     <thredds:service name="dap" serviceType="OPeNDAP" base="/opendap/hyrax"/>
 </thredds:catalog>"""
         with pytest.raises(THREDDSCatalogError) as e:
-            list(get_opendap_urls(xml))
+            list(get_opendap_urls(xml, base_url="https://someurl.com"))
         assert str(e.value) == "THREDDS catalog top level dataset not found"
 
     def test_get_opendap_urls__missing_dataset_access(self):
@@ -165,5 +166,5 @@ class TestGetOpendapUrls:
         </thredds:dataset>
     </thredds:dataset>
 </thredds:catalog>"""
-        urls = list(get_opendap_urls(xml))
+        urls = list(get_opendap_urls(xml, base_url="https://someurl.com"))
         assert urls == []

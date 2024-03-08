@@ -4,7 +4,6 @@ import datetime
 import logging
 import tempfile
 import os
-from abc import ABC
 from typing import TYPE_CHECKING
 
 # noinspection PyPep8Naming
@@ -43,11 +42,59 @@ class OpendapExtractorL2LiteFP(BaseExtractor):
             yield from ()
 
         base_year = date_list[0].year
+        opendap_urls_dict = self.get_opendap_urls_dict_for_year(base_year)
+
+        seen_years = {base_year}
+        for date in date_list:
+            if date.year not in seen_years:
+                seen_years.add(date.year)
+                opendap_urls_dict |= self.get_opendap_urls_dict_for_year(date.year)
+
+            date_str = date.strftime("%y%m%d")
+            url = opendap_urls_dict.get(date_str)
+            if url is None:
+                logger.warning("No OPeNDAP URL found for date %s", date_str)
+                continue
+
+            yield self.get_dataframe_from_opendap_url(url)
+
+    def get_thredds_catalog_url_for_year(self, year: int) -> str:
+        home_dir = "opendap/OCO2_L2_Lite_FP.11.1r"
+        return f"{self._settings.earthdata_base_url}/{home_dir}/{year}/catalog.xml"
+
+    def get_dataframe_from_opendap_url(self, url: str) -> pd.DataFrame:
+        # noinspection DuplicatedCode
+        _f = tempfile.NamedTemporaryFile(delete=False)
+        with requests.Session() as session:
+            session.auth = (self._settings.earthdata_username, self._settings.earthdata_password)
+            response = session.get(url)
+            _f.write(response.content)
+            _f.close()
+
+        with nc.Dataset(_f.name, mode="r") as ds:
+            df = pd.DataFrame({
+                "datetime": pd.to_datetime(ds["time"][:], unit="s", origin="1970-01-01"),
+                "latitude": ds["latitude"][:],
+                "longitude": ds["longitude"][:],
+                "xco2": ds["xco2"][:],
+                "xco2_quality_flag": ds["xco2_quality_flag"][:],
+            })
+
+        os.unlink(_f.name)  # Delete temporary file.
+        return self.clean_dataframe(df)
+
+    def get_opendap_urls_dict_for_year(self, year: int) -> dict[str, str]:
+        """
+        Get dictionary of OPeNDAP URLs for given year mapped to date strings in format YYMMDD.
+        :param year: Year.
+        :return:
+        """
         try:
-            catalog_url = self.get_thredds_catalog_url_for_year(base_year)
+            catalog_url = self.get_thredds_catalog_url_for_year(year)
             catalog_xml = get_thredds_catalog_xml(catalog_url)
             opendap_urls = list(get_opendap_urls(
                 catalog_xml,
+                base_url=self._settings.earthdata_base_url,
                 file_suffix=".nc4",
                 variables=[
                     "xco2",
@@ -61,9 +108,29 @@ class OpendapExtractorL2LiteFP(BaseExtractor):
             logger.error(e)
             raise
 
-        # Map dates to opendap urls.
-        # TODO
+        try:
+            return {self.opendap_url_to_date_str(_u): _u for _u in opendap_urls}
+        except ValueError as e:
+            logger.error(e)
+            raise
 
-    def get_thredds_catalog_url_for_year(self, year: int) -> str:
-        home_dir = "opendap/OCO2_L2_Lite_FP.11.1r"
-        return f"{self._settings.earthdata_base_url}/{home_dir}/{year}/catalog.xml"
+    @staticmethod
+    def opendap_url_to_date_str(url: str) -> str:
+        """
+        Extract date string in format YYMMDD from OPeNDAP URL.
+        :param url:
+        :return:
+        :raises ValueError: If the URL is not in the expected format.
+        """
+        # Assuming "/OCO2_L2_Lite_FP.11.1r/2024/oco2_LtCO2_240102_B11100Ar_240229181145s.nc4" -> "240102"
+        try:
+            filename = url.split("/")[-1]
+            return filename.split("_")[2]
+        except (IndexError, AttributeError) as e:
+            raise ValueError(f"Invalid OPeNDAP URL {url}") from e
+
+    @staticmethod
+    def clean_dataframe(df: pd.DataFrame) -> pd.DataFrame:
+        # 0=Good, 1=Bad.
+        df = df.loc[df["xco2_quality_flag"] == 0]
+        return df.drop(columns=["xco2_quality_flag"])

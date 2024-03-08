@@ -5,7 +5,7 @@ import typer
 
 
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,  # TODO: Set to INFO for production.
     format="%(asctime)s %(levelname)s %(name)s %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",  # Include datetime for easier execution time tracking.
 )
@@ -43,11 +43,12 @@ def debug_command() -> None:
     """
     import datetime
     from data.conf import get_app_settings
-    from data.extractors.opendap_extractor_L2_Standard import OpendapExtractorL2Standard
+    from data.extractors.opendap_extractor_L2_Lite_FP import OpendapExtractorL2LiteFP
 
     settings = get_app_settings()
-    extractor = OpendapExtractorL2Standard(settings)
-    extractor.extract_date_range([datetime.date(2024, 2, 1)])
+    extractor = OpendapExtractorL2LiteFP(settings)
+    for df in extractor.extract_date_range([datetime.date(2024, 1, 15)]):
+        print(df)
 
 
 if __name__ == "__main__":

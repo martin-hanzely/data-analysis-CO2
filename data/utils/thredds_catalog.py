@@ -20,6 +20,7 @@ def get_thredds_catalog_xml(catalog_url: str) -> str | bytes:
     Get THREDDS catalog XML from given URL.
     :param catalog_url: URL of THREDDS catalog.
     :return: THREDDS catalog XML.
+    :raises THREDDSCatalogError: If the request to the THREDDS catalog URL fails.
     """
     response = requests.get(catalog_url)
     try:
@@ -32,6 +33,7 @@ def get_thredds_catalog_xml(catalog_url: str) -> str | bytes:
 
 def get_opendap_urls(
         catalog_xml: str | bytes,
+        base_url: str,
         file_suffix: str = "",
         variables: Iterable[str] | None = None,
 ) -> Iterator[str]:
@@ -39,9 +41,11 @@ def get_opendap_urls(
     Get list of OPeNDAP urls from given THREDDS catalog XML.
     https://docs.unidata.ucar.edu/tds/current/userguide/basic_client_catalog.html
     :param catalog_xml: THREDDS catalog XML.
+    :param base_url: Base URL of the OPeNDAP server.
     :param file_suffix: Additional file suffix indicating dataset format.
     :param variables: List of requested variables.
     :return: Iterable of OPeNDAP urls.
+    :raises THREDDSCatalogError: If the XML is not a valid THREDDS catalog with OPeNDAP service.
     """
     # noinspection HttpUrlsUsage
     xml_ns = {"thredds": "http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0"}
@@ -70,9 +74,9 @@ def get_opendap_urls(
         variables_suffix = ""
 
     for dataset in top_level_dataset.findall("thredds:dataset", xml_ns):
-        try:
-            access = dataset.find(f"thredds:access[@serviceName='{service_name}']", xml_ns)
-            if access is not None:
-                yield f'{service_base}{access.attrib["urlPath"]}{file_suffix}{variables_suffix}'
-        except KeyError:
-            continue  # Skip dataset without access
+        access = dataset.find(f"thredds:access[@serviceName='{service_name}']", xml_ns)
+        if access is not None:
+            url_path = access.attrib.get("urlPath")
+
+            # TODO: Handle slashes in url components.
+            yield f'{base_url}{service_base}{url_path}{file_suffix}{variables_suffix}'
