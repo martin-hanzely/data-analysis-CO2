@@ -62,7 +62,11 @@ class OpendapExtractorL2LiteFP(BaseExtractor):
 
     def get_dataframe_from_opendap_url(self, url: str) -> pd.DataFrame:
         with (
-            get_file_from_opendap_url(url) as _f,
+            get_file_from_opendap_url(
+                url,
+                self._settings.earthdata_username,
+                self._settings.earthdata_password
+            ) as _f,
             nc.Dataset(_f.name, mode="r") as ds
         ):
             df = pd.DataFrame({
