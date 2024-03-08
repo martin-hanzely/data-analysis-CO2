@@ -18,12 +18,18 @@ def invoke_etl() -> None:
     """
     Invoke ETL pipeline.
     """
+    import datetime
+
+    from data.conf import get_app_settings
     from data.etl.etl_pipeline import ETLPipeline
+    from data.extractors.opendap_extractor_L2_Standard import OpendapExtractorL2Standard
     from data.loaders.local_csv_loader import LocalCSVLoader
 
+    settings = get_app_settings()
+    _e = OpendapExtractorL2Standard(settings)
     _l = LocalCSVLoader()
-    etl_pipeline = ETLPipeline(load_strategy=_l)
-    etl_pipeline.invoke()
+    etl_pipeline = ETLPipeline(extract_strategy=_e, load_strategy=_l)
+    etl_pipeline.invoke([datetime.date(2024, 1, 15)])
 
 
 @app.command()
