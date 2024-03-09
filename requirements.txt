@@ -18,6 +18,7 @@ dash-core-components==2.0.0
 dash-html-components==2.0.0
 dash-table==5.0.0
 flask==3.0.2 ; python_version >= '3.8'
+gunicorn==21.2.0
 idna==3.6 ; python_version >= '3.5'
 importlib-metadata==7.0.2 ; python_version >= '3.8'
 itsdangerous==2.1.2 ; python_version >= '3.7'

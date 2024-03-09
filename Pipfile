@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 celery = {extras = ["redis"], version = "*"}
+gunicorn = "*"
 requests = "*"
 typer = {extras = ["all"], version = "*"}
 netCDF4 = "*"
