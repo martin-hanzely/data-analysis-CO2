@@ -13,6 +13,7 @@ services:
         volumes:
             - ./influxdb2-data:/var/lib/influxdb2
             - ./influxdb2-config:/etc/influxdb2
+
     redis:
         image: redis:7.2.3-alpine
         container_name: redis
