@@ -6,6 +6,9 @@ services:
         command: [gunicorn, --workers=2, --threads=1, --bind=0.0.0.0:8050, app:server]
         environment:
             - DEBUG=${DEBUG}
+            - INFLUXDB_URL=${INFLUXDB_URL}
+            - INFLUXDB_TOKEN=${INFLUXDB_TOKEN}
+            - INFLUXDB_ORG=${INFLUXDB_ORG}
             - SENTRY_DSN=${SENTRY_DSN}
         ports:
             - "8050:8050"
@@ -27,6 +30,9 @@ services:
             - EARTHDATA_PASSWORD=${EARTHDATA_PASSWORD}
             - CELERY_BROKER_URL=${CELERY_BROKER_URL}
             - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+            - INFLUXDB_URL=${INFLUXDB_URL}
+            - INFLUXDB_TOKEN=${INFLUXDB_TOKEN}
+            - INFLUXDB_ORG=${INFLUXDB_ORG}
             - SENTRY_DSN=${SENTRY_DSN}
         volumes:
             - .:/app

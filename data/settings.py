@@ -19,5 +19,10 @@ class Settings(BaseSettings):
     celery_result_backend: str
     celery_timezone: str = "Europe/Bratislava"
 
+    # INFLUXDB
+    influxdb_url: str
+    influxdb_token: str
+    influxdb_org: str
+
     # SENTRY
     sentry_dsn: str
