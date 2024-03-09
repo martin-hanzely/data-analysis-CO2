@@ -5,7 +5,7 @@ from data.settings import Settings
 
 
 @pytest.fixture
-def test_settings():
+def dummy_settings():
     return Settings(
         earthdata_base_url="https://testbaseurl.com",
         earthdata_username="testuser",

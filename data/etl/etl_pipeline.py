@@ -34,6 +34,7 @@ class ETLPipeline:
 
     # noinspection PyMethodMayBeStatic
     def _transform(self, df: pd.DataFrame) -> pd.DataFrame:
+        # TODO: Implement transformation logic.
         return df
 
     def _load(self, df: pd.DataFrame) -> None:

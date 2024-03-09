@@ -3,15 +3,11 @@ import os
 import pytest
 import requests
 
-from data.utils.opendap import (
-    THREDDSCatalogError,
-    get_thredds_catalog_xml,
-    get_opendap_urls,
-    get_file_from_opendap_url,
-)
+from data.utils.opendap import THREDDSCatalogError, OpendapClient
 
 
-class TestGetThreddsCatalogXml:
+class TestOpendapClient:
+    _cl = OpendapClient()
 
     def test_get_thredds_catalog_xml(self, monkeypatch):
         # noinspection PyUnusedLocal
@@ -28,7 +24,7 @@ class TestGetThreddsCatalogXml:
 
         monkeypatch.setattr(requests, "get", mock_requests_get)
         url = "https://validurl.com/opendap/OCO2_L2_Standard.11/2024/062/catalog.xml"
-        xml = get_thredds_catalog_xml(url)
+        xml = self._cl.get_thredds_catalog_xml(url)
         assert xml == b'<?xml version="1.0" encoding="UTF-8"?>'
 
     def test_get_thredds_catalog_xml__error_response(self, monkeypatch):
@@ -46,11 +42,8 @@ class TestGetThreddsCatalogXml:
 
         monkeypatch.setattr(requests, "get", mock_requests_get)
         with pytest.raises(THREDDSCatalogError) as e:
-            get_thredds_catalog_xml("https://invalidurl.com")
+            self._cl.get_thredds_catalog_xml("https://invalidurl.com")
         assert str(e.value) == "THREDDS catalog request https://invalidurl.com error HTTP Error"
-
-
-class TestGetOpendapUrls:
 
     def test_get_opendap_urls(self):
         xml = b"""\
@@ -81,7 +74,7 @@ class TestGetOpendapUrls:
         </thredds:dataset>
     </thredds:dataset>
 </thredds:catalog>"""
-        urls = list(get_opendap_urls(xml, base_url="https://someurl.com"))
+        urls = list(self._cl.get_opendap_urls(xml, base_url="https://someurl.com"))
         assert urls == [
             "https://someurl.com/opendap/hyrax/OCO2_L2_Standard.11/2024/062/oco2_L2StdND_51418a_240302_B11008_240303020002.h5",
             "https://someurl.com/opendap/hyrax/OCO2_L2_Standard.11/2024/062/oco2_L2StdND_51420a_240302_B11008_240303021304.h5",
@@ -97,7 +90,7 @@ class TestGetOpendapUrls:
         </thredds:dataset>
         </thredds:dataset>
 </thredds:catalog>"""
-        urls = list(get_opendap_urls(xml, base_url="https://someurl.com", file_suffix=".nc4"))
+        urls = list(self._cl.get_opendap_urls(xml, base_url="https://someurl.com", file_suffix=".nc4"))
         assert urls == [
             "https://someurl.com/opendap/hyrax/OCO2_L2_Standard.11/2024/062/oco2_L2StdND_51418a_240302_B11008_240303020002.h5.nc4",
         ]
@@ -112,7 +105,7 @@ class TestGetOpendapUrls:
             </thredds:dataset>
             </thredds:dataset>
     </thredds:catalog>"""
-            urls = list(get_opendap_urls(
+            urls = list(self._cl.get_opendap_urls(
                 xml,
                 base_url="https://someurl.com",
                 variables=["RetrievalGeometry_retrieval_latitude", "RetrievalGeometry_retrieval_longitude"]
@@ -124,7 +117,7 @@ class TestGetOpendapUrls:
     def test_get_opendap_urls__invalid_xml(self):
         xml = b"invalid xml"
         with pytest.raises(THREDDSCatalogError) as e:
-            list(get_opendap_urls(xml, base_url="https://someurl.com"))
+            list(self._cl.get_opendap_urls(xml, base_url="https://someurl.com"))
         assert str(e.value).startswith("THREDDS catalog parsing error")
 
     def test_get_opendap_urls__missing_dap_service(self):
@@ -134,7 +127,7 @@ class TestGetOpendapUrls:
     <thredds:service name="WCS-coads" serviceType="WCS" base="/opendap/wcs"/>
 </thredds:catalog>"""
         with pytest.raises(THREDDSCatalogError) as e:
-            list(get_opendap_urls(xml, base_url="https://someurl.com"))
+            list(self._cl.get_opendap_urls(xml, base_url="https://someurl.com"))
         assert str(e.value) == "OPeNDAP service not found in THREDDS catalog"
 
     def test_get_opendap_urls__missing_service_base(self):
@@ -145,7 +138,7 @@ class TestGetOpendapUrls:
     <thredds:service name="WCS-coads" serviceType="WCS" base="/opendap/wcs"/>
 </thredds:catalog>"""
         with pytest.raises(THREDDSCatalogError) as e:
-            list(get_opendap_urls(xml, base_url="https://someurl.com"))
+            list(self._cl.get_opendap_urls(xml, base_url="https://someurl.com"))
         assert str(e.value) == "OPeNDAP service base not found in THREDDS catalog"
 
     def test_get_opendap_urls__missing_top_level_dataset(self):
@@ -154,7 +147,7 @@ class TestGetOpendapUrls:
     <thredds:service name="dap" serviceType="OPeNDAP" base="/opendap/hyrax"/>
 </thredds:catalog>"""
         with pytest.raises(THREDDSCatalogError) as e:
-            list(get_opendap_urls(xml, base_url="https://someurl.com"))
+            list(self._cl.get_opendap_urls(xml, base_url="https://someurl.com"))
         assert str(e.value) == "THREDDS catalog top level dataset not found"
 
     def test_get_opendap_urls__missing_dataset_access(self):
@@ -169,11 +162,8 @@ class TestGetOpendapUrls:
         </thredds:dataset>
     </thredds:dataset>
 </thredds:catalog>"""
-        urls = list(get_opendap_urls(xml, base_url="https://someurl.com"))
+        urls = list(self._cl.get_opendap_urls(xml, base_url="https://someurl.com"))
         assert urls == []
-
-
-class TestGetFileFromOpendapUrl:
 
     def test_get_file_from_opendap_url(self, monkeypatch):
         # noinspection PyUnusedLocal
@@ -194,7 +184,7 @@ class TestGetFileFromOpendapUrl:
         password = "password"
 
         with (
-            get_file_from_opendap_url(url, username, password) as _f,
+            self._cl.get_file_from_opendap_url(url, username, password) as _f,
             open(_f.name, "rb") as open_file,
         ):
             assert open_file.read() == b"file content"

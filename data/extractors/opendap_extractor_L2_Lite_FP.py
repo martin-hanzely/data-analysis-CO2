@@ -9,12 +9,7 @@ import netCDF4 as nc
 import pandas as pd
 
 from data.extractors.base_extractor import BaseExtractor
-from data.utils.opendap import (
-    THREDDSCatalogError,
-    get_thredds_catalog_xml,
-    get_opendap_urls,
-    get_file_from_opendap_url,
-)
+from data.utils.opendap import THREDDSCatalogError, OpendapClient
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Iterator
@@ -30,9 +25,11 @@ class OpendapExtractorL2LiteFP(BaseExtractor):
     Extractor class for data from the NASA Earth Data GES DISC OPeNDAP server.
     """
     _settings: Settings
+    _client: OpendapClient
 
-    def __init__(self, settings: Settings) -> None:
+    def __init__(self, settings: Settings, client: OpendapClient) -> None:
         self._settings = settings
+        self._client = client
 
     def extract_date_range(self, date_range: Iterable[datetime.date]) -> Iterator[pd.DataFrame]:
         date_list = list(date_range)
@@ -54,6 +51,7 @@ class OpendapExtractorL2LiteFP(BaseExtractor):
                 logger.warning("No OPeNDAP URL found for date %s", date_str)
                 continue
 
+            logger.info("Extracting data from OPeNDAP URL %s", url)
             yield self.get_dataframe_from_opendap_url(url)
 
     def get_thredds_catalog_url_for_year(self, year: int) -> str:
@@ -62,7 +60,7 @@ class OpendapExtractorL2LiteFP(BaseExtractor):
 
     def get_dataframe_from_opendap_url(self, url: str) -> pd.DataFrame:
         with (
-            get_file_from_opendap_url(
+            self._client.get_file_from_opendap_url(
                 url,
                 self._settings.earthdata_username,
                 self._settings.earthdata_password
@@ -87,8 +85,8 @@ class OpendapExtractorL2LiteFP(BaseExtractor):
         """
         try:
             catalog_url = self.get_thredds_catalog_url_for_year(year)
-            catalog_xml = get_thredds_catalog_xml(catalog_url)
-            opendap_urls = list(get_opendap_urls(
+            catalog_xml = self._client.get_thredds_catalog_xml(catalog_url)
+            opendap_urls = list(self._client.get_opendap_urls(
                 catalog_xml,
                 base_url=self._settings.earthdata_base_url,
                 file_suffix=".nc4",
