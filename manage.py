@@ -40,13 +40,13 @@ def invoke_etl() -> None:
 
 
 @app.command()
-def dash_app(debug: Annotated[bool, typer.Option(help="Debug mode.")] = False) -> None:
+def dash_app() -> None:
     """
     Run dash app.
     """
-    from dash_app.app import app
+    from dash_app.app import app as dash_app_
 
-    app.run(debug=debug)
+    dash_app_.run(debug=True)
 
 
 if __name__ == "__main__":
