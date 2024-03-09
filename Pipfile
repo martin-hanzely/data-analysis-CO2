@@ -5,19 +5,20 @@ name = "pypi"
 
 [packages]
 celery = {extras = ["redis"], version = "*"}
+dash = "*"
 gunicorn = "*"
-requests = "*"
-typer = {extras = ["all"], version = "*"}
+influxdb-client = "*"
 netCDF4 = "*"
 pandas = "*"
-dash = "*"
 plotly = "*"
 pydantic-settings = "*"
+requests = "*"
 sentry-sdk = {extras = ["flask"], version = "*"}
+typer = {extras = ["all"], version = "*"}
 
 [dev-packages]
-pytest = "*"
 coverage = "*"
+pytest = "*"
 
 [requires]
 python_version = "3.11"

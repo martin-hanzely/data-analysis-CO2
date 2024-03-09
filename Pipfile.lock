@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "f0ed35a262eeb77af53b0f955451c7e2d29c0997a5068c576605e56d75ea57b9"
+            "sha256": "a550bff0a6571e0bdd9aedadbfb6f925ba1c288ea98895b6cec6377bba03d431"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -297,6 +297,14 @@
             ],
             "markers": "python_version >= '3.8'",
             "version": "==7.0.2"
+        },
+        "influxdb-client": {
+            "hashes": [
+                "sha256:420d7c5b7ed0f778de0eac923aded3ea3a4eb6b247e3fbb7a187e0a577a5a3be",
+                "sha256:4b85bad3991f3de24818366c87c8868a64917fea2d21bbcc2b579fbe5d904990"
+            ],
+            "index": "pypi",
+            "version": "==1.41.0"
         },
         "itsdangerous": {
             "hashes": [
@@ -677,6 +685,14 @@
                 "sha256:328171f4e3623139da4983451950b28e95ac706e13f3f2630a879749e7a8b319"
             ],
             "version": "==2024.1"
+        },
+        "reactivex": {
+            "hashes": [
+                "sha256:0004796c420bd9e68aad8e65627d85a8e13f293de76656165dffbcb3a0e3fb6a",
+                "sha256:e912e6591022ab9176df8348a653fe8c8fa7a301f26f9931c9d8c78a650e04e8"
+            ],
+            "markers": "python_version >= '3.7' and python_version < '4.0'",
+            "version": "==4.0.4"
         },
         "redis": {
             "hashes": [
