@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     import pandas as pd
 
 
-class BaseExtractor(ABC):  # TODO: Add method to extract date range.
+class BaseExtractor(ABC):
     """
     Abstract base class for data extractors.
     """
