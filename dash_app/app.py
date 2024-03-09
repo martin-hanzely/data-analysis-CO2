@@ -26,6 +26,8 @@ external_stylesheets = [{
 
 app = Dash(__name__, external_stylesheets=external_stylesheets)
 
+server = app.server
+
 _l = LocalCSVLoader()
 df = _l.retrieve_dataframe()
 
