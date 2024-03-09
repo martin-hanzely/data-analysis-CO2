@@ -1,10 +1,15 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     """
     Application settings.
     """
+    model_config = SettingsConfigDict(extra="ignore")
+
+    debug: bool = False
+
+    # EARTHDATA
     earthdata_base_url: str
     earthdata_username: str
     earthdata_password: str
@@ -12,3 +17,7 @@ class Settings(BaseSettings):
     # CELERY
     celery_broker_url: str
     celery_result_backend: str
+    celery_timezone: str = "Europe/Bratislava"
+
+    # SENTRY
+    sentry_dsn: str

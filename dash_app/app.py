@@ -1,9 +1,21 @@
 import pandas as pd
-from dash import Dash, html, dcc
 import plotly.express as px
+import sentry_sdk
+from dash import Dash, html, dcc
 
+from data.conf import get_app_settings
 from data.loaders.local_csv_loader import LocalCSVLoader
 
+
+settings = get_app_settings()
+
+sentry_sdk.init(
+    debug=settings.debug,
+    dsn=settings.sentry_dsn,
+    enable_tracing=True,
+    traces_sample_rate=1.0,
+    profiles_sample_rate=1.0,
+)
 
 external_stylesheets = [{
     "href": "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css",
