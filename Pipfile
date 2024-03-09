@@ -11,6 +11,7 @@ typer = {extras = ["all"], version = "*"}
 netCDF4 = "*"
 pandas = "*"
 dash = "*"
+plotly = "*"
 pydantic-settings = "*"
 sentry-sdk = {extras = ["flask"], version = "*"}
 

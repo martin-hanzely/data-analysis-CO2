@@ -48,6 +48,7 @@ class TestOpendapExtractorL2LiteFP:
         year = 2024
         _e = OpendapExtractorL2LiteFP(dummy_settings, dummy_client)
 
+        # noinspection PyUnusedLocal
         def raise_error(*args, **kwargs):
             raise THREDDSCatalogError("Catalog error")
         _e._client.get_thredds_catalog_xml = raise_error
@@ -60,6 +61,7 @@ class TestOpendapExtractorL2LiteFP:
         year = 2024
         _e = OpendapExtractorL2LiteFP(dummy_settings, dummy_client)
 
+        # noinspection PyUnusedLocal
         def raise_error(*args, **kwargs):
             raise ValueError("Invalid OPeNDAP URL")
         _e.opendap_url_to_date_str = raise_error

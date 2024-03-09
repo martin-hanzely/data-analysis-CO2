@@ -96,23 +96,23 @@ class TestOpendapClient:
         ]
 
     def test_get_opendap_urls__variables(self):
-            xml = b"""\
-    <thredds:catalog xmlns:thredds="http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:bes="http://xml.opendap.org/ns/bes/1.0#">
-        <thredds:service name="dap" serviceType="OPeNDAP" base="/opendap/hyrax"/>
-        <thredds:dataset name="/OCO2_L2_Standard.11/2024/062" ID="/opendap/hyrax/OCO2_L2_Standard.11/2024/062/">
-            <thredds:dataset name="oco2_L2StdND_51418a_240302_B11008_240303020002.h5" ID="/opendap/hyrax/OCO2_L2_Standard.11/2024/062/oco2_L2StdND_51418a_240302_B11008_240303020002.h5">
-                <thredds:access serviceName="dap" urlPath="/OCO2_L2_Standard.11/2024/062/oco2_L2StdND_51418a_240302_B11008_240303020002.h5"/>
-            </thredds:dataset>
-            </thredds:dataset>
-    </thredds:catalog>"""
-            urls = list(self._cl.get_opendap_urls(
-                xml,
-                base_url="https://someurl.com",
-                variables=["RetrievalGeometry_retrieval_latitude", "RetrievalGeometry_retrieval_longitude"]
-            ))
-            assert urls == [
-                "https://someurl.com/opendap/hyrax/OCO2_L2_Standard.11/2024/062/oco2_L2StdND_51418a_240302_B11008_240303020002.h5?RetrievalGeometry_retrieval_latitude,RetrievalGeometry_retrieval_longitude",
-            ]
+        xml = b"""\
+<thredds:catalog xmlns:thredds="http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:bes="http://xml.opendap.org/ns/bes/1.0#">
+    <thredds:service name="dap" serviceType="OPeNDAP" base="/opendap/hyrax"/>
+    <thredds:dataset name="/OCO2_L2_Standard.11/2024/062" ID="/opendap/hyrax/OCO2_L2_Standard.11/2024/062/">
+        <thredds:dataset name="oco2_L2StdND_51418a_240302_B11008_240303020002.h5" ID="/opendap/hyrax/OCO2_L2_Standard.11/2024/062/oco2_L2StdND_51418a_240302_B11008_240303020002.h5">
+            <thredds:access serviceName="dap" urlPath="/OCO2_L2_Standard.11/2024/062/oco2_L2StdND_51418a_240302_B11008_240303020002.h5"/>
+        </thredds:dataset>
+        </thredds:dataset>
+</thredds:catalog>"""
+        urls = list(self._cl.get_opendap_urls(
+            xml,
+            base_url="https://someurl.com",
+            variables=["RetrievalGeometry_retrieval_latitude", "RetrievalGeometry_retrieval_longitude"]
+        ))
+        assert urls == [
+            "https://someurl.com/opendap/hyrax/OCO2_L2_Standard.11/2024/062/oco2_L2StdND_51418a_240302_B11008_240303020002.h5?RetrievalGeometry_retrieval_latitude,RetrievalGeometry_retrieval_longitude",
+        ]
 
     def test_get_opendap_urls__invalid_xml(self):
         xml = b"invalid xml"
