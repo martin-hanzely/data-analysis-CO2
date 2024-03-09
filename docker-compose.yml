@@ -1,7 +1,42 @@
 services:
+    dash-app:
+        build: .
+        container_name: dash-app
+        image: app-image
+        command: [gunicorn, --workers=2, --threads=1, --bind=0.0.0.0:8050, app:server]
+        environment:
+            - DEBUG=${DEBUG}
+            - SENTRY_DSN=${SENTRY_DSN}
+        ports:
+            - "8050:8050"
+        volumes:
+            - .:/app
+        depends_on:
+            - influxdb
+            - redis
+
+    celery-worker:
+        container_name: celery-worker
+        build: .
+        image: app-image
+        command: [celery, -A, data, worker, -B, -s, /tmp/celerybeat-schedule, --loglevel=INFO]
+        environment:
+            - DEBUG=${DEBUG}
+            - EARTHDATA_BASE_URL=${EARTHDATA_BASE_URL}
+            - EARTHDATA_USERNAME=${EARTHDATA_USERNAME}
+            - EARTHDATA_PASSWORD=${EARTHDATA_PASSWORD}
+            - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+            - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+            - SENTRY_DSN=${SENTRY_DSN}
+        volumes:
+            - .:/app
+        depends_on:
+            - influxdb
+            - redis
+
     influxdb:
-        image: influxdb:2.7.4-alpine
         container_name: influxdb2
+        image: influxdb:2.7.4-alpine
         environment:
             - DOCKER_INFLUXDB_INIT_MODE=setup
             - DOCKER_INFLUXDB_INIT_USERNAME=${DOCKER_INFLUXDB_INIT_USERNAME}
@@ -15,8 +50,8 @@ services:
             - ./influxdb2-config:/etc/influxdb2
 
     redis:
-        image: redis:7.2.3-alpine
         container_name: redis
+        image: redis:7.2.3-alpine
         ports:
             - "6379:6379"
         volumes:
