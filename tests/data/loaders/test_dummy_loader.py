@@ -1,27 +1,25 @@
 import pandas as pd
 import pytest
 
+from data.loaders.dummy_loader import DummyLoader
 from data.loaders.exceptions import LoaderError
 
 
 class TestDummyLoader:
-
     @pytest.fixture
-    def df(self) -> pd.DataFrame:
-        return pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})
+    def dummy_loader(self) -> DummyLoader:
+        return DummyLoader()
 
-    def test_save_dataframe(self, df, dummy_loader):
-        dummy_loader.save_dataframe(df)
+    def test_loader_workflow(self, dummy_df, dummy_loader):
+        assert isinstance(dummy_df, pd.DataFrame) and len(dummy_df) > 0  # Sanity check
 
-        assert dummy_loader._df.equals(df)
+        dummy_loader.save_dataframe(dummy_df)
 
-    def test_retrieve_dataframe(self, df, dummy_loader):
-        dummy_loader.save_dataframe(df)
-
-        assert dummy_loader.retrieve_dataframe().equals(df)
+        df_ = dummy_loader.retrieve_dataframe()
+        pd.testing.assert_frame_equal(df_, dummy_df)
 
     def test_retrieve_dataframe__raises_error_if_no_dataframe(self, dummy_loader):
-        assert dummy_loader._df is None, "Test setup is incorrect"
+        assert dummy_loader._df is None, "Test setup is incorrect"  # Sanity check
 
         with pytest.raises(LoaderError):
             dummy_loader.retrieve_dataframe()

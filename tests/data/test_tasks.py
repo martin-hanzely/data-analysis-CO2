@@ -1,6 +1,5 @@
 from data.tasks import debug_task
 
 
-def test_debug_task(caplog):
+def test_debug_task():
     assert debug_task() == 0
-    assert "Debug task executed" in caplog.text

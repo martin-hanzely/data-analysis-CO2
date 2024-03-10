@@ -32,7 +32,7 @@ class TestOpendapExtractorL2Standard:
 
         assert isinstance(df, pd.DataFrame)
         assert len(df) == 3
-        assert set(df.columns.tolist()) == {"xco2", "datetime", "longitude", "latitude"}
+        assert set(df.columns.tolist()) == {"xco2", "_time", "longitude", "latitude"}
 
     def test_clean_dataframe(self):
         df = pd.DataFrame({
@@ -44,7 +44,7 @@ class TestOpendapExtractorL2Standard:
         clean_df = OpendapExtractorL2Standard.clean_dataframe(df)
         clean_df.reset_index(inplace=True, drop=True)  # Reset index to compare.
 
-        assert clean_df.equals(expected)
+        pd.testing.assert_frame_equal(clean_df, expected)
 
 
 class DummyClient(OpendapClient):

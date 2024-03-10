@@ -31,7 +31,7 @@ class TestOpendapExtractorL2LiteFP:
 
         assert isinstance(df, pd.DataFrame)
         assert len(df) == 2
-        assert set(df.columns.tolist()) == {"xco2", "datetime", "longitude", "latitude"}
+        assert set(df.columns.tolist()) == {"xco2", "_time", "longitude", "latitude"}
 
     def test_get_opendap_urls_dict_for_year(self, dummy_settings, dummy_client):
         year = 2024
@@ -91,7 +91,7 @@ class TestOpendapExtractorL2LiteFP:
         clean_df = OpendapExtractorL2LiteFP.clean_dataframe(df)
         clean_df.reset_index(inplace=True, drop=True)  # Reset index to compare.
 
-        assert clean_df.equals(expected)
+        pd.testing.assert_frame_equal(clean_df, expected)
 
 
 class DummyClient(OpendapClient):

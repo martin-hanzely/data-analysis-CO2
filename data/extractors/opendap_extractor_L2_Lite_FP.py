@@ -68,7 +68,7 @@ class OpendapExtractorL2LiteFP(BaseExtractor):
             nc.Dataset(_f.name, mode="r") as ds
         ):
             df = pd.DataFrame({
-                "datetime": pd.to_datetime(ds["time"][:], unit="s", origin="1970-01-01"),
+                "_time": pd.to_datetime(ds["time"][:], unit="s", origin="1970-01-01", utc=True),
                 "latitude": ds["latitude"][:],
                 "longitude": ds["longitude"][:],
                 "xco2": ds["xco2"][:],

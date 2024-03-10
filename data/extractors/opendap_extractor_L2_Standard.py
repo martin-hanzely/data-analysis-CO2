@@ -80,7 +80,7 @@ class OpendapExtractorL2Standard(BaseExtractor):
         ):
             retrieval_time_string = nc.chartostring(ds["RetrievalHeader_retrieval_time_string"][:])
             df = pd.DataFrame({
-                "datetime": pd.to_datetime(retrieval_time_string, format="%Y-%m-%dT%H:%M:%S.%fZ"),
+                "_time": pd.to_datetime(retrieval_time_string, format="%Y-%m-%dT%H:%M:%S.%fZ", utc=True),
                 "latitude": ds["RetrievalGeometry_retrieval_latitude"][:],
                 "longitude": ds["RetrievalGeometry_retrieval_longitude"][:],
                 "xco2": ds["RetrievalResults_xco2"][:],
