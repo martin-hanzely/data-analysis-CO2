@@ -1,3 +1,8 @@
+from __future__ import annotations
+
+import io
+from typing import IO
+
 import pandas as pd
 
 from data.loaders.base_loader import BaseLoader
@@ -8,14 +13,25 @@ class LocalCSVLoader(BaseLoader):
     """
     Local CSV loader class.
     """
+    _in_memory: bool
+    _path_or_buf: IO[str] | str
     _out_dir: str = "out/"
-    _file_path: str = _out_dir + "data.csv"
+
+    def __init__(self, in_memory: bool = False) -> None:
+        self._in_memory = in_memory
+        if in_memory:
+            self._path_or_buf = io.StringIO()
+        else:
+            self._path_or_buf = self._out_dir + "data.csv"
 
     def save_dataframe(self, df: pd.DataFrame) -> None:
-        df.to_csv(self._file_path)
+        df.to_csv(self._path_or_buf, index=False)
 
     def retrieve_dataframe(self) -> pd.DataFrame:
+        if self._in_memory:
+            self._path_or_buf.seek(0)
+
         try:
-            return pd.read_csv(self._file_path)
+            return pd.read_csv(self._path_or_buf, parse_dates=["_time"])
         except FileNotFoundError:
             raise LoaderError("Dataframe cannot be retrieved")

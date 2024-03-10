@@ -1,4 +1,3 @@
-import pandas as pd
 import plotly.express as px
 import sentry_sdk
 from dash import Dash, html, dcc
@@ -31,8 +30,7 @@ server = app.server
 _l = LocalCSVLoader()
 df = _l.retrieve_dataframe()
 
-df["datetime"] = pd.to_datetime(df["datetime"])
-df["date"] = df["datetime"].apply(lambda x: x.date())
+df["date"] = df["_time"].apply(lambda x: x.date())
 
 # Aggregate data per degree
 df["latitude"] = df["latitude"].apply(lambda x: round(x))
