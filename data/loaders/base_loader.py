@@ -1,11 +1,10 @@
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
-from abc import ABC, abstractmethod
-
 if TYPE_CHECKING:
-    from pandas import DataFrame
+    from pandas import DataFrame, Timestamp
 
 
 class BaseLoader(ABC):
@@ -18,15 +17,23 @@ class BaseLoader(ABC):
     def save_dataframe(self, df: DataFrame) -> None:
         """
         Save dataframe to persistent storage.
-        :param df: Dataframe to save
+        :param df:
         :return: None
         """
         pass
 
     @abstractmethod
-    def retrieve_dataframe(self) -> DataFrame:
+    def retrieve_dataframe(
+            self,
+            *,
+            dt_from: Timestamp,
+            dt_to: Timestamp
+    ) -> DataFrame:
         """
-        Retrieve dataframe from persistent storage.
+        Retrieve dataframe records within given range from persistent storage.
+        Datetime range boundaries are inclusive.
+        :param dt_from:
+        :param dt_to:
         :return: Dataframe
         """
         pass

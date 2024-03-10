@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime
 from typing import TYPE_CHECKING, TypedDict
 
 import influxdb_client as influxdb
@@ -49,12 +50,17 @@ class InfluxDBLoader(BaseLoader):
                 data_frame_measurement_name=self._xco2_measurement_name,
             )
 
-    def retrieve_dataframe(self) -> pd.DataFrame:
+    def retrieve_dataframe(
+            self,
+            *,
+            dt_from: pd.Timestamp,
+            dt_to: pd.Timestamp
+    ) -> pd.DataFrame:
         with influxdb.InfluxDBClient(**self._client_kwargs) as _client:
-            # TODO: Supply range as an argument!
+            _dt_format = "%Y-%m-%dT%H:%M:%S.%fZ"
             query = f"""\
 from(bucket: "{self._bucket}")
-|> range(start: 2023-12-31T00:00:00Z)
+|> range(start: {dt_from.strftime(_dt_format)}, stop: {dt_to.strftime(_dt_format)})
 |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
 |> keep(columns:["_time", "latitude", "longitude", "xco2"])"""
 

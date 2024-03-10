@@ -35,7 +35,7 @@ def dummy_df() -> pd.DataFrame:
     :return:
     """
     return pd.DataFrame({
-        "_time": pd.to_datetime(["2024-01-01T00:00", "2024-01-01T00:01", "2024-01-01T00:02"], utc=True),
+        "_time": pd.to_datetime(["2024-01-01T01:00", "2024-01-01T02:01", "2024-01-01T03:02"], utc=True),
         "latitude": [-0.1, 0.0, 0.1],
         "longitude": [0.1, 0.0, -0.1],
         "xco2": [420.1, 420.0, 420.1],

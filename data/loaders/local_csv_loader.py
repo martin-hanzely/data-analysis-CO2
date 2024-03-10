@@ -27,11 +27,17 @@ class LocalCSVLoader(BaseLoader):
     def save_dataframe(self, df: pd.DataFrame) -> None:
         df.to_csv(self._path_or_buf, index=False)
 
-    def retrieve_dataframe(self) -> pd.DataFrame:
+    def retrieve_dataframe(
+            self,
+            *,
+            dt_from: pd.Timestamp,
+            dt_to: pd.Timestamp
+    ) -> pd.DataFrame:
         if self._in_memory:
             self._path_or_buf.seek(0)
 
         try:
-            return pd.read_csv(self._path_or_buf, parse_dates=["_time"])
+            df = pd.read_csv(self._path_or_buf, parse_dates=["_time"])
+            return df[df["_time"].between(dt_from, dt_to, inclusive="both")]
         except FileNotFoundError:
             raise LoaderError("Dataframe cannot be retrieved")
