@@ -9,6 +9,7 @@ services:
             - INFLUXDB_URL=${INFLUXDB_URL}
             - INFLUXDB_TOKEN=${INFLUXDB_TOKEN}
             - INFLUXDB_ORG=${INFLUXDB_ORG}
+            - INFLUXDB_BUCKET=${INFLUXDB_BUCKET}
             - SENTRY_DSN=${SENTRY_DSN}
         ports:
             - "8050:8050"
@@ -33,6 +34,7 @@ services:
             - INFLUXDB_URL=${INFLUXDB_URL}
             - INFLUXDB_TOKEN=${INFLUXDB_TOKEN}
             - INFLUXDB_ORG=${INFLUXDB_ORG}
+            - INFLUXDB_BUCKET=${INFLUXDB_BUCKET}
             - SENTRY_DSN=${SENTRY_DSN}
         volumes:
             - .:/app
