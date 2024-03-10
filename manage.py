@@ -7,7 +7,7 @@ from data.extractors.utils import OpendapExtractorChoices
 
 
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format="%(asctime)s %(levelname)s %(name)s %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",  # Include datetime for easier execution time tracking.
 )
