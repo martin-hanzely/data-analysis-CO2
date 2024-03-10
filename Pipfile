@@ -19,6 +19,7 @@ typer = {extras = ["all"], version = "*"}
 [dev-packages]
 coverage = "*"
 pytest = "*"
+testcontainers-core = "*"
 
 [requires]
 python_version = "3.11"
