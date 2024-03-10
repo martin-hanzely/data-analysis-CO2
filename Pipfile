@@ -7,7 +7,7 @@ name = "pypi"
 celery = {extras = ["redis"], version = "*"}
 dash = "*"
 gunicorn = "*"
-influxdb-client = "*"
+influxdb-client = {extras = ["extra"], version = "*"}
 netCDF4 = "*"
 pandas = "*"
 plotly = "*"
