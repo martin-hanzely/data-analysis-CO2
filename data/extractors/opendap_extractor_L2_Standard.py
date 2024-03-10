@@ -8,29 +8,20 @@ from typing import TYPE_CHECKING
 import netCDF4 as nc
 import pandas as pd
 
-from data.extractors.base_extractor import BaseExtractor
-from data.utils.opendap import THREDDSCatalogError, OpendapClient
+from data.extractors.base_opendap_extractor import BaseOpendapExtractor
+from data.utils.opendap import THREDDSCatalogError
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Iterator
-
-    from data.settings import Settings
 
 
 logger = logging.getLogger(__name__)
 
 
-class OpendapExtractorL2Standard(BaseExtractor):
+class OpendapExtractorL2Standard(BaseOpendapExtractor):
     """
     Extractor class for data from the NASA Earth Data GES DISC OPeNDAP server.
     """
-    _settings: Settings
-    _client: OpendapClient
-
-    def __init__(self, settings: Settings, client: OpendapClient) -> None:
-        self._settings = settings
-        self._client = client
-
     def extract_date_range(
             self,
             date_range: Iterable[datetime.date]

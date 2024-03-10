@@ -1,6 +1,9 @@
 import logging
 
 import typer
+from typing_extensions import Annotated
+
+from data.extractors.utils import OpendapExtractorChoices
 
 
 logging.basicConfig(
@@ -13,31 +16,30 @@ app = typer.Typer()
 
 
 @app.command()
-def invoke_etl() -> None:
+def invoke_etl(
+        extractor_class: OpendapExtractorChoices,
+        date_from: Annotated[str, typer.Argument(help="Date from in format YYYY-MM-DD")],
+        date_to: Annotated[str, typer.Argument(help="Date to in format YYYY-MM-DD")],
+) -> None:
     """
     Invoke ETL pipeline.
     """
     import datetime
 
-    from data.conf import get_app_settings
-    from data.etl.etl_pipeline import ETLPipeline
-    from data.extractors.opendap_extractor_L2_Lite_FP import OpendapExtractorL2LiteFP
-    from data.loaders.influxdb_loader import InfluxDBLoader
-    from data.utils.opendap import OpendapClient
+    from data.etl.utils import pipeline_factory
 
-    settings = get_app_settings()
-    opendap_client = OpendapClient()
-    extractor = OpendapExtractorL2LiteFP(settings=settings, client=opendap_client)
-    loader = InfluxDBLoader(settings=settings)
-    etl_pipeline = ETLPipeline(extract_strategy=extractor, load_strategy=loader)
+    _date_from = datetime.date.fromisoformat(date_from)
+    _date_to = datetime.date.fromisoformat(date_to)
+    _date_range = (_date_from + datetime.timedelta(days=i) for i in range((_date_to - _date_from).days + 1))
 
-    etl_pipeline.invoke([datetime.date(2024, 1, 15)])
+    pipeline = pipeline_factory(extractor_class)
+    pipeline.invoke(_date_range)
 
 
 @app.command()
 def dash_app() -> None:
     """
-    Run dash app.
+    Run dash app in debug mode.
     """
     from dash_app.app import app as dash_app_
 
