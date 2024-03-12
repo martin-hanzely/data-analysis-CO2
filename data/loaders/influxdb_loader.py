@@ -56,7 +56,7 @@ class InfluxDBLoader(BaseLoader):
             dt_from: pd.Timestamp,
             dt_to: pd.Timestamp
     ) -> pd.DataFrame:
-        with influxdb.InfluxDBClient(**self._client_kwargs) as _client:
+        with influxdb.InfluxDBClient(**self._client_kwargs, timeout=30_000) as _client:
             _dt_format = "%Y-%m-%dT%H:%M:%S.%fZ"
             query = f"""\
 from(bucket: "{self._bucket}")
