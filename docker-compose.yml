@@ -3,7 +3,7 @@ services:
         build: .
         container_name: dash-app
         image: app-image
-        command: [gunicorn, --workers=2, --threads=1, --bind=0.0.0.0:8050, app:server]
+        command: [gunicorn, --workers=2, --threads=1, --bind=0.0.0.0:8050, dash_app/app:server]
         environment:
             - DEBUG=${DEBUG}
             - INFLUXDB_URL=${INFLUXDB_URL}
