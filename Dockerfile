@@ -3,6 +3,8 @@ LABEL authors="Martin Hanzely"
 
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8 PYTHONUNBUFFERED=1 PYTHONHASHSEED=0
 
+COPY .netrc .
+
 COPY requirements.txt .
 RUN python -m pip install -r requirements.txt
 
