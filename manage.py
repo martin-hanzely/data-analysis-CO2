@@ -41,7 +41,7 @@ def dash_app() -> None:
     """
     Run dash app in debug mode.
     """
-    from dash_app.app import app as dash_app_
+    from app import app as dash_app_
 
     dash_app_.run(debug=True)
 
