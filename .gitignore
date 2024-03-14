@@ -243,6 +243,5 @@ cython_debug/
 influxdb2-config/
 influxdb2-data/
 
-# Netrc files
+# Netrc file
 .netrc
-.dodsrc
