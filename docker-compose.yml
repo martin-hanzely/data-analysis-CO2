@@ -36,7 +36,6 @@ services:
             - INFLUXDB_ORG=${INFLUXDB_ORG}
             - INFLUXDB_BUCKET=${INFLUXDB_BUCKET}
             - SENTRY_DSN=${SENTRY_DSN}
-            - NETRC=${NETRC}
         volumes:
             - .:/app
         depends_on:
