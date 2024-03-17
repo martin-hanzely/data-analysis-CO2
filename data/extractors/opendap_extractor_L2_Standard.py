@@ -86,8 +86,9 @@ class OpendapExtractorL2Standard(BaseOpendapExtractor):
         # 2 - Failed internal quality check,
         # 3 - Reached maximum allowed iterations,
         # 4 - Reached maximum allowed divergences.
-        df = df.loc[df["RetrievalResults_outcome_flag"] == 1]
-        df = df.drop(columns=["RetrievalResults_outcome_flag"])
+        df = df \
+            .loc[df["RetrievalResults_outcome_flag"] == 1] \
+            .drop(columns=["RetrievalResults_outcome_flag"])
 
         # Dry air mole fraction to ppm.
         df["xco2"] = df["xco2"] * 1e6

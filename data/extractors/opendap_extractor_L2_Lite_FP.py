@@ -117,5 +117,6 @@ class OpendapExtractorL2LiteFP(BaseOpendapExtractor):
     @staticmethod
     def clean_dataframe(df: pd.DataFrame) -> pd.DataFrame:
         # 0=Good, 1=Bad.
-        df = df.loc[df["xco2_quality_flag"] == 0]
-        return df.drop(columns=["xco2_quality_flag"])
+        return df \
+            .loc[df["xco2_quality_flag"] == 0] \
+            .drop(columns=["xco2_quality_flag"])
