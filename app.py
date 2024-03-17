@@ -1,18 +1,28 @@
 from __future__ import annotations
 
+import time
 import datetime as dt
 import logging
-from typing import TYPE_CHECKING
+import uuid
+from typing import TYPE_CHECKING, Any, Callable, TypedDict
 
 import dash
 import pandas as pd
 import plotly.express as px
 import sentry_sdk
+
 from data.conf import get_app_settings
 from data.loaders.influxdb_loader import InfluxDBLoader
 
 if TYPE_CHECKING:
     from plotly.graph_objs import Figure
+
+    from data.loaders.base_loader import BaseLoader
+
+
+class CallbackManagerCacheSettings(TypedDict):
+    cache_by: list[Callable[[], Any]]
+    expire: int
 
 
 logger = logging.getLogger(__name__)
@@ -34,71 +44,131 @@ external_stylesheets = [{
     "crossorigin": "anonymous"
 }]
 
+# ENABLE BACKGROUND CALLBACK CACHING
+launch_uid = uuid.uuid4()
+callback_manager_cache_settings: CallbackManagerCacheSettings = {"cache_by": [lambda: launch_uid], "expire": 60}
+
+if settings.celery_broker_url and settings.celery_result_backend:
+    from data.celery import app as celery_app
+
+    background_callback_manager = dash.CeleryManager(celery_app, **callback_manager_cache_settings)
+else:
+    from diskcache import Cache
+
+    cache = Cache("cache")
+    background_callback_manager = dash.DiskcacheManager(cache, **callback_manager_cache_settings)
+
 app = dash.Dash(
     __name__,
     external_stylesheets=external_stylesheets,
+    background_callback_manager=background_callback_manager,
 )
 
 server = app.server
 
 loader = InfluxDBLoader(settings=settings)
 
-base_date = dt.date(2024, 1, 1)
-date_range = 7
-
-# Load `df` in global state
-logger.info("Loading data from InfluxDB")
-df = loader.retrieve_dataframe(
-    dt_from=pd.Timestamp(base_date, tz="UTC"),
-    dt_to=pd.Timestamp(base_date + dt.timedelta(date_range), tz="UTC"),
-)
-logger.info("Data loaded")
-
-# TODO: Move this to ETL pipeline!
-logger.info("Performing aggregation")
-df["latitude"] = df["latitude"].apply(lambda x: round(x))
-df["longitude"] = df["longitude"].apply(lambda x: round(x))
-df["date"] = df["_time"].apply(lambda x: x.date())
-df = df.groupby(["latitude", "longitude", "date"]).mean(numeric_only=True).reset_index()
-
-xco2_min = df["xco2"].min()
-xco2_max = df["xco2"].max()
-
-app.layout = dash.html.Div([
-    dash.html.H1(children="Data analysis CO2", style={"textAlign": "center"}),
-    dash.html.Div([
-        dash.dcc.Graph(id="graph-content"),
-        dash.dcc.RangeSlider(
-            min=0,
-            max=date_range,
-            step=1,
-            value=[0, date_range],
-            id="range-slider",
+app.layout = dash.html.Div(
+    className="container-fluid",
+    children=[
+        dash.html.Div(
+            className="row",
+            children=[
+                dash.html.Div(
+                    className="col-3 p-5 bg-body-tertiary border-end",
+                    children=[
+                        dash.html.H1(
+                            className="h3",
+                            children="Bakalárska práca",
+                        ),
+                        dash.html.P(
+                            children=(
+                                "Analýza a vizualizácia obsahu oxidu uhličitého v zemskej atmosfére na základe verejne "
+                                "dostupných dát v súvislosti so zmenami klímy.",
+                            )
+                        ),
+                        dash.html.P(
+                            children=["Rozsah zobrazených záznamov: "],
+                        ),
+                        dash.dcc.DatePickerRange(
+                            id='date-picker-range',
+                            start_date="2024-01-01",
+                            end_date="2024-01-07",
+                            min_date_allowed="2024-01-01",
+                            max_date_allowed="2024-01-31",
+                            initial_visible_month="2024-01-01",
+                            display_format="DD.MM.YYYY",
+                            updatemode="bothdates",
+                            style={"border-radius": "1rem"},
+                        ),
+                        dash.html.Div(
+                            className="mt-3",
+                            children=[
+                                dash.html.P(
+                                    children=["Počet záznamov: ", dash.html.Span(id="results-count")]
+                                ),
+                                dash.html.P(
+                                    children=[
+                                        dash.html.A(
+                                            href="https://github.com/martin-hanzely/data-analysis-CO2",
+                                            children="GitHub",
+                                        ),
+                                    ]
+                                ),
+                            ]
+                        ),
+                    ],
+                ),
+                dash.html.Div(
+                    className="col-9",
+                    children=[
+                        dash.dcc.Graph(
+                            id="graph-content",
+                            style={"height": "100vh"},
+                        ),
+                    ]
+                )
+            ]
         ),
-    ])
-])
+    ]
+)
 
 
 @dash.callback(
     dash.Output(component_id="graph-content", component_property="figure"),
-    dash.Input(component_id="range-slider", component_property="value"),
+    dash.Output(component_id="results-count", component_property="children"),
+    dash.Input(component_id="date-picker-range", component_property="start_date"),
+    dash.Input(component_id="date-picker-range", component_property="end_date"),
+    background=True,
+    running=[(dash.Output(component_id="date-picker-range", component_property="disabled"), True, False)]
 )
-def update_output_div(value: list[int]) -> Figure:
+def update_graph(
+        start_date: str,
+        end_date: str,
+        loader_: BaseLoader = loader
+) -> tuple[Figure, int]:
     try:
-        date_from = base_date + dt.timedelta(value[0])
-        date_to = base_date + dt.timedelta(value[1])
-    except (TypeError, IndexError) as e:
+        date_from = dt.date.fromisoformat(start_date)
+        date_to = dt.date.fromisoformat(end_date)
+    except ValueError as e:
         logger.error("Invalid date range", exc_info=e)
         raise dash.exceptions.PreventUpdate
 
-    _df = df[df["date"].between(date_from, date_to)]
+    _time = time.time()
+    df = loader_.retrieve_dataframe(
+        dt_from=pd.Timestamp(date_from, tz="UTC"),
+        dt_to=pd.Timestamp(date_to, tz="UTC"),
+    )
+    logger.info("Data loaded in %s seconds", time.time() - _time)
+    logger.info("Data shape: %s", df.shape)
 
     fig = px.scatter_geo(
-        _df,
+        df,
         lat="latitude",
         lon="longitude",
         color="xco2",
-        hover_data=["xco2"],
-        range_color=[xco2_min, xco2_max],
+        hover_data=["xco2", "_time"],
     )
-    return fig
+    fig.update_geos(projection_type="orthographic")
+
+    return fig, df.shape[0]

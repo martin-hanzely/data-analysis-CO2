@@ -245,3 +245,6 @@ influxdb2-data/
 
 # Netrc file
 .netrc
+
+# diskcache
+cache/
