@@ -5,7 +5,7 @@ name = "pypi"
 
 [packages]
 celery = {extras = ["redis"], version = "*"}
-dash = "*"
+dash = {extras = ["celery"], version = "*"}
 gunicorn = "*"
 influxdb-client = {extras = ["extra"], version = "*"}
 netCDF4 = "*"
@@ -20,6 +20,7 @@ typer = {extras = ["all"], version = "*"}
 coverage = "*"
 pytest = "*"
 testcontainers-core = "*"
+dash = {extras = ["diskcache", "testing"], version = "*"}
 
 [requires]
 python_version = "3.11"
