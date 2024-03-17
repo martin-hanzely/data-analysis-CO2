@@ -13,6 +13,7 @@ class BaseLoader(ABC):
     Loader classes are used to save and retrieve dataframes from persistent storage.
     """
 
+    # TODO: Enable multiple dataframes to be saved as different tables.
     @abstractmethod
     def save_dataframe(self, df: DataFrame) -> None:
         """
