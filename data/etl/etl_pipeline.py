@@ -19,6 +19,8 @@ class ETLPipeline:
     _extract_strategy: BaseExtractor
     _load_strategy: BaseLoader
 
+    _tai93_base_date: pd.Timestamp = pd.Timestamp("1993-01-01", tz="UTC")
+
     def __init__(self, extract_strategy: BaseExtractor, load_strategy: BaseLoader) -> None:
         self._extract_strategy = extract_strategy
         self._load_strategy = load_strategy
@@ -32,10 +34,21 @@ class ETLPipeline:
         dfs = list(self._extract_strategy.extract_date_range(date_range))
         return pd.concat(dfs, ignore_index=True)
 
-    # noinspection PyMethodMayBeStatic
     def _transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        # TODO: Implement transformation logic.
-        return df
+        # Convert datetime to tai93 to obtain a numeric value
+        df["tai93"] = (df["_time"] - self._tai93_base_date).dt.total_seconds()
+
+        # Round coordinates
+        df["latitude"] = df["latitude"].apply(lambda x: round(x))
+        df["longitude"] = df["longitude"].apply(lambda x: round(x))
+
+        # Aggregate
+        df = df.groupby(["latitude", "longitude"]).mean(numeric_only=True).reset_index()
+
+        # Convert tai93 back to datetime
+        df["_time"] = self._tai93_base_date + pd.to_timedelta(df["tai93"], unit="s")
+
+        return df.drop(columns=["tai93"])
 
     def _load(self, df: pd.DataFrame) -> None:
         self._load_strategy.save_dataframe(df)
