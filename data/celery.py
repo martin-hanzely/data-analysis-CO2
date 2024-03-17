@@ -12,7 +12,7 @@ app = Celery(
     "data",
     broker=settings.celery_broker_url,
     backend=settings.celery_result_backend,
-    include=["data.tasks"],
+    include=["data.tasks", "app"],
 )
 
 app.conf.beat_schedule = {
