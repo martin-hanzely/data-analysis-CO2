@@ -26,13 +26,11 @@ class ETLPipeline:
         self._load_strategy = load_strategy
 
     def invoke(self, date_range: Iterable[datetime.date]) -> None:
-        df = self._extract(date_range)
-        df = self._transform(df)
-        self._load(df)
+        for _df in self._extract(date_range):
+            self._load(self._transform(_df))
 
-    def _extract(self, date_range: Iterable[datetime.date]) -> pd.DataFrame:
-        dfs = list(self._extract_strategy.extract_date_range(date_range))
-        return pd.concat(dfs, ignore_index=True)
+    def _extract(self, date_range: Iterable[datetime.date]) -> Iterable[pd.DataFrame]:
+        yield from self._extract_strategy.extract_date_range(date_range)
 
     def _transform(self, df: pd.DataFrame) -> pd.DataFrame:
         # Convert datetime to tai93 to obtain a numeric value
