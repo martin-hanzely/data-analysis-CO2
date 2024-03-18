@@ -64,5 +64,8 @@ from(bucket: "{self._bucket}")
 |> keep(columns:["_time", "latitude", "longitude", "xco2"])"""
 
             df = _client.query_api().query_data_frame(query)
+            if df.empty:
+                return pd.DataFrame(columns=["_time", "latitude", "longitude", "xco2"])
+
             df = df.drop(columns=["table", "result"])
             return df

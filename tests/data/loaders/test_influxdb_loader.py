@@ -45,3 +45,16 @@ class TestInfluxDBLoader:
         loaded_df = loaded_df.reset_index(drop=True)
 
         pd.testing.assert_frame_equal(loaded_df, expected_df, check_like=True)
+
+    def test_retrieve_dataframe__works_with_empty_result(self, influxdb_container, dummy_settings, dummy_df):
+        assert isinstance(dummy_df, pd.DataFrame) and len(dummy_df) > 0  # Sanity check
+
+        loader = InfluxDBLoader(settings=dummy_settings)
+        loader.save_dataframe(df=dummy_df)
+        loaded_df = loader.retrieve_dataframe(
+            dt_from=pd.to_datetime("2020-01-01T00:00", utc=True),
+            dt_to=pd.to_datetime("2020-01-01T01:00", utc=True),
+        )
+        loaded_df = loaded_df.reset_index(drop=True)
+
+        assert loaded_df.empty
