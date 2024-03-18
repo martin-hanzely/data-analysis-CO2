@@ -16,6 +16,7 @@ def dummy_settings() -> Settings:
         earthdata_username="testuser",
         earthdata_password="testpassword",
 
+        celery_enabled=False,
         celery_broker_url="",
         celery_result_backend="",
 
