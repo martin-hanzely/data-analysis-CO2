@@ -51,7 +51,11 @@ class OpendapExtractorL2Standard(BaseOpendapExtractor):
 
         df = pd.DataFrame()
         for url in opendap_urls:
-            df = pd.concat([df, self.get_dataframe_from_opendap_url(url)], ignore_index=True)
+            df_local = self.get_dataframe_from_opendap_url(url)
+            if df_local is None:
+                continue  # Concatenating an empty DataFrame will be deprecated.
+
+            df = pd.concat([df, df_local], ignore_index=True)
         return df
 
     def get_thredds_catalog_url_for_date(self, date: datetime.date) -> str:
@@ -60,7 +64,7 @@ class OpendapExtractorL2Standard(BaseOpendapExtractor):
         doy = date.timetuple().tm_yday
         return f"{self._settings.earthdata_base_url}/{home_dir}/{year}/{doy:03}/catalog.xml"
 
-    def get_dataframe_from_opendap_url(self, url: str) -> pd.DataFrame:
+    def get_dataframe_from_opendap_url(self, url: str) -> pd.DataFrame | None:
         with (
             self._client.get_file_from_opendap_url(
                 url,
@@ -70,6 +74,10 @@ class OpendapExtractorL2Standard(BaseOpendapExtractor):
             nc.Dataset(_f.name, mode="r") as ds
         ):
             retrieval_time_string = nc.chartostring(ds["RetrievalHeader_retrieval_time_string"][:])
+            if retrieval_time_string.size < 2:
+                logger.warning(f"Empty dataset: {url}")
+                return None
+
             df = pd.DataFrame({
                 "_time": pd.to_datetime(retrieval_time_string, format="%Y-%m-%dT%H:%M:%S.%fZ", utc=True),
                 "latitude": ds["RetrievalGeometry_retrieval_latitude"][:],
