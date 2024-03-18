@@ -25,10 +25,6 @@ app.conf.beat_schedule = {
             "days_before_today": 2
         },
     },
-    "debug_task": {  # Debug task to check if the worker is running.
-        "task": "debug_task",
-        "schedule": crontab(minute="*/1"),  # every minute
-    },
 }
 
 app.conf.timezone = settings.celery_timezone
