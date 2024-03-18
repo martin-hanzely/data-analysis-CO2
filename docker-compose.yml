@@ -6,6 +6,9 @@ services:
         command: [gunicorn, --workers=4, --threads=2, --bind=0.0.0.0:8050, app:server]
         environment:
             - DEBUG=${DEBUG}
+            - CELERY_ENABLED=${CELERY_ENABLED}
+            - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+            - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
             - INFLUXDB_URL=${INFLUXDB_URL}
             - INFLUXDB_TOKEN=${INFLUXDB_TOKEN}
             - INFLUXDB_ORG=${INFLUXDB_ORG}

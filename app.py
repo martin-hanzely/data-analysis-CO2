@@ -44,11 +44,11 @@ external_stylesheets = [{
     "crossorigin": "anonymous"
 }]
 
-# ENABLE BACKGROUND CALLBACK CACHING
+# Enable background callback processing and cache.
 launch_uid = uuid.uuid4()
 callback_manager_cache_settings: CallbackManagerCacheSettings = {"cache_by": [lambda: launch_uid], "expire": 60}
 
-if settings.celery_broker_url and settings.celery_result_backend:
+if settings.celery_enabled:
     from data.celery import app as celery_app
 
     background_callback_manager = dash.CeleryManager(celery_app, **callback_manager_cache_settings)
@@ -66,8 +66,6 @@ app = dash.Dash(
 
 server = app.server
 
-loader = InfluxDBLoader(settings=settings)
-
 app.layout = dash.html.Div(
     className="container-fluid",
     children=[
@@ -84,11 +82,11 @@ app.layout = dash.html.Div(
                         dash.html.P(
                             children=(
                                 "Analýza a vizualizácia obsahu oxidu uhličitého v zemskej atmosfére na základe verejne "
-                                "dostupných dát v súvislosti so zmenami klímy.",
+                                "dostupných dát v súvislosti so zmenami klímy."
                             )
                         ),
                         dash.html.P(
-                            children=["Rozsah zobrazených záznamov: "],
+                            children="Rozsah zobrazených záznamov: ",
                         ),
                         dash.dcc.DatePickerRange(
                             id='date-picker-range',
@@ -132,6 +130,8 @@ app.layout = dash.html.Div(
         ),
     ]
 )
+
+loader = InfluxDBLoader(settings=settings)
 
 
 @dash.callback(

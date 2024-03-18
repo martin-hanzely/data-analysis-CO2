@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     earthdata_password: str
 
     # CELERY
+    celery_enabled: bool
     celery_broker_url: str
     celery_result_backend: str
     celery_timezone: str = "Europe/Bratislava"
