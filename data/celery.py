@@ -18,11 +18,11 @@ app = Celery(
 app.conf.beat_schedule = {
     "daily_etl_task_L2_Standard": {
         "task": "daily_etl_task",
-        "schedule": crontab(minute="0", hour="5"),  # 05:00
+        "schedule": crontab(minute="0", hour="6"),  # 06:00
         "kwargs": {
             # L2 Standard data are available 1 day after acquisition.
             "extractor_class": "opendap_L2_Standard",
-            "days_before_today": 3
+            "days_before_today": 2
         },
     },
 }
