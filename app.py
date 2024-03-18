@@ -66,6 +66,9 @@ app = dash.Dash(
 
 server = app.server
 
+_min_date = "2024-01-01"
+_today = dt.date.today()
+
 app.layout = dash.html.Div(
     className="container-fluid",
     children=[
@@ -75,56 +78,50 @@ app.layout = dash.html.Div(
                 dash.html.Div(
                     className="col-3 p-5 bg-body-tertiary border-end",
                     children=[
-                        dash.html.H1(
-                            className="h3",
-                            children="Bakalárska práca",
-                        ),
-                        dash.html.P(
-                            children=(
-                                "Analýza a vizualizácia obsahu oxidu uhličitého v zemskej atmosfére na základe verejne "
-                                "dostupných dát v súvislosti so zmenami klímy."
-                            )
-                        ),
-                        dash.html.P(
-                            children="Rozsah zobrazených záznamov: ",
-                        ),
+                        dash.html.H1("Bakalárska práca", className="h3"),
+                        dash.html.P("Analýza a vizualizácia obsahu oxidu uhličitého v zemskej atmosfére na základe verejne dostupných dát v súvislosti so zmenami klímy."),
+                        dash.html.P("Rozsah zobrazených záznamov: "),
                         dash.dcc.DatePickerRange(
                             id='date-picker-range',
-                            start_date="2024-01-01",
-                            end_date="2024-01-07",
-                            min_date_allowed="2024-01-01",
-                            max_date_allowed="2024-01-31",
-                            initial_visible_month="2024-01-01",
-                            display_format="DD.MM.YYYY",
+                            start_date=_today - dt.timedelta(days=7),
+                            end_date=_today,
+                            min_date_allowed=_min_date,
+                            max_date_allowed=_today,
+                            initial_visible_month=_today,
+                            display_format="YYYY-MM-DD",
+                            first_day_of_week=1,
                             updatemode="bothdates",
-                            style={"border-radius": "1rem"},
+                            style={"border-radius": "1rem", "width": "100%"},
+                            className="mb-3",
                         ),
-                        dash.html.Div(
-                            className="mt-3",
-                            children=[
-                                dash.html.P(
-                                    children=["Počet záznamov: ", dash.html.Span(id="results-count")]
-                                ),
-                                dash.html.P(
-                                    children=[
-                                        dash.html.A(
-                                            href="https://github.com/martin-hanzely/data-analysis-CO2",
-                                            children="GitHub",
-                                        ),
-                                    ]
-                                ),
-                            ]
-                        ),
+                        dash.html.P(["Počet záznamov: ", dash.html.Span(id="results-count")]),
+                        dash.html.P([
+                            "Vypracoval: Martin Hanzely ",
+                            dash.html.A(
+                                href="https://github.com/martin-hanzely/data-analysis-CO2",
+                                children="GitHub",
+                            ),
+                        ]),
+                        dash.html.H5("Zdroje dát"),
+                        dash.html.P([
+                            f"OCO-2/OCO-3 Science Team, Vivienne Payne, Abhishek Chatterjee (2022), OCO-2 Level 2 geolocated XCO2 retrievals results, physical model V11, Greenbelt, MD, USA, Goddard Earth Sciences Data and Information Services Center (GES DISC), Accessed: {_today.isoformat()}, ",
+                            dash.html.A(
+                                href="https://disc.gsfc.nasa.gov/datacollection/OCO2_L2_Standard_11.html",
+                                children="Link",
+                            )
+                        ]),
+                        dash.html.P([
+                            f"OCO-2/OCO-3 Science Team, Vivienne Payne, Abhishek Chatterjee (2022), OCO-2 Level 2 bias-corrected XCO2 and other select fields from the full-physics retrieval aggregated as daily files, Retrospective processing V11.1r, Greenbelt, MD, USA, Goddard Earth Sciences Data and Information Services Center (GES DISC), Accessed: {_today.isoformat()}, ",
+                            dash.html.A(
+                                href="https://doi.org/10.5067/8E4VLCK16O6Q",
+                                children="10.5067/8E4VLCK16O6Q",
+                            )
+                        ]),
                     ],
                 ),
                 dash.html.Div(
-                    className="col-9",
-                    children=[
-                        dash.dcc.Graph(
-                            id="graph-content",
-                            style={"height": "100vh"},
-                        ),
-                    ]
+                    [dash.dcc.Graph(id="graph-content", style={"height": "100vh"})],
+                    className="col-9"
                 )
             ]
         ),
