@@ -47,6 +47,7 @@ class InfluxDBLoader(BaseLoader):
                 bucket=self._bucket,
                 record=df,
                 data_frame_measurement_name=self._xco2_measurement_name,
+                data_frame_tag_columns=["country"],
             )
 
     def retrieve_dataframe(
@@ -61,7 +62,7 @@ class InfluxDBLoader(BaseLoader):
 from(bucket: "{self._bucket}")
 |> range(start: {dt_from.strftime(_dt_format)}, stop: {dt_to.strftime(_dt_format)})
 |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
-|> keep(columns:["_time", "latitude", "longitude", "xco2"])"""
+|> keep(columns:["_time", "latitude", "longitude", "xco2", "country"])"""
 
             df = _client.query_api().query_data_frame(query)
             if df.empty:

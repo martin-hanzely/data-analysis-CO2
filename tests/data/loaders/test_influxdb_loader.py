@@ -26,14 +26,21 @@ class TestInfluxDBLoader:
             yield container
 
     # noinspection DuplicatedCode
-    def test_loader_workflow(self, influxdb_container, dummy_settings, dummy_df):
-        assert isinstance(dummy_df, pd.DataFrame) and len(dummy_df) > 0  # Sanity check
+    def test_loader_workflow(self, influxdb_container, dummy_settings):
+        dummy_df = pd.DataFrame({
+            "_time": pd.to_datetime(["2024-01-01T01:00", "2024-01-01T02:01", "2024-01-01T02:02", "2024-01-01T03:02"], utc=True),
+            "latitude": [-0.1, 0.1, 0.2, 0.1],
+            "longitude": [0.1, 0.2, 0.1, -0.1],
+            "xco2": [420.1, 420.0, 421.0, 420.1],
+            "country": ["NA", "NA", "SK", "NA"],
+        })
 
         expected_df = pd.DataFrame({
-            "_time": pd.to_datetime(["2024-01-01T02:01"], utc=True),
-            "latitude": [0.0],
-            "longitude": [0.0],
-            "xco2": [420.0],
+            "_time": pd.to_datetime(["2024-01-01T02:01", "2024-01-01T02:02"], utc=True),
+            "latitude": [0.1, 0.2],
+            "longitude": [0.2, 0.1],
+            "xco2": [420.0, 421.0],
+            "country": ["NA", "SK"],
         })
 
         loader = InfluxDBLoader(settings=dummy_settings)

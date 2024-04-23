@@ -10,15 +10,16 @@ class TestETLPipeline:
     def test_invoke(self):
         input_df = pd.DataFrame({
             "_time": pd.to_datetime(["2024-01-01T00:00:00Z", "2024-01-01T00:01:00Z", "2024-01-01T00:02:00Z"]),
-            "latitude": [1.0, 1.5, 2.0],
-            "longitude": [1.5, 1.0, 1.0],
+            "latitude": [1.0, 1.5, 48.0],
+            "longitude": [1.5, 1.0, 20.0],
             "xco2": [1.0, 2.0, 3.0],
         })
         expected_df = pd.DataFrame({
-            "_time": pd.to_datetime(["2024-01-01T00:00:00Z", "2024-01-01T00:01:30Z"]),
-            "latitude": [1, 2],
-            "longitude": [2, 1],
-            "xco2": [1.0, 2.5],
+            "_time": pd.to_datetime(["2024-01-01T00:00:00Z", "2024-01-01T00:01:00Z", "2024-01-01T00:02:00Z"]),
+            "latitude": [1.0, 1.5, 48.0],
+            "longitude": [1.5, 1.0, 20.0],
+            "xco2": [1.0, 2.0, 3.0],
+            "country": ["NA", "NA", "SK"],
         })
 
         extract_strategy = DummyExtractor(input_df)
