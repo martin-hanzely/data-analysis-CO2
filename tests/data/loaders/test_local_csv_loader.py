@@ -18,6 +18,7 @@ class TestLocalCSVLoader:
             "latitude": [0.0],
             "longitude": [0.0],
             "xco2": [420.0],
+            "country": ["SK"],
         })
 
         local_csv_loader.save_dataframe(dummy_df)

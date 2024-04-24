@@ -40,4 +40,5 @@ def dummy_df() -> pd.DataFrame:
         "latitude": [-0.1, 0.0, 0.1],
         "longitude": [0.1, 0.0, -0.1],
         "xco2": [420.1, 420.0, 420.1],
+        "country": ["NA", "SK", "NA"],
     })
