@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from pandas import DataFrame, Timestamp
+    import pandas as pd
 
 
 class BaseLoader(ABC):
@@ -13,28 +13,21 @@ class BaseLoader(ABC):
     Loader classes are used to save and retrieve dataframes from persistent storage.
     """
 
-    # TODO: Enable multiple dataframes to be saved as different tables.
     @abstractmethod
-    def save_dataframe(self, df: DataFrame) -> None:
+    def save_dataframe(self, df: pd.DataFrame, file_name: str) -> None:
         """
         Save dataframe to persistent storage.
         :param df:
+        :param file_name:
         :return: None
         """
         pass
 
     @abstractmethod
-    def retrieve_dataframe(
-            self,
-            *,
-            dt_from: Timestamp,
-            dt_to: Timestamp
-    ) -> DataFrame:
+    def retrieve_dataframe(self, file_name: str) -> pd.DataFrame:
         """
-        Retrieve dataframe records within given range from persistent storage.
-        Datetime range boundaries are inclusive.
-        :param dt_from:
-        :param dt_to:
+        Retrieve dataframe from persistent storage.
+        :param file_name:
         :return: Dataframe
         """
         pass

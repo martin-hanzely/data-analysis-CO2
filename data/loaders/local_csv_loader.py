@@ -6,7 +6,6 @@ from typing import IO
 import pandas as pd
 
 from data.loaders.base_loader import BaseLoader
-from data.loaders.exceptions import LoaderError
 
 
 class LocalCSVLoader(BaseLoader):
@@ -14,30 +13,29 @@ class LocalCSVLoader(BaseLoader):
     Local CSV loader class.
     """
     _in_memory: bool
-    _path_or_buf: IO[str] | str
-    _out_dir: str = "out/"
+    _buf: IO[str] | None = None
 
     def __init__(self, in_memory: bool = False) -> None:
         self._in_memory = in_memory
         if in_memory:
-            self._path_or_buf = io.StringIO()
-        else:
-            self._path_or_buf = self._out_dir + "data.csv"
+            self._buf = io.StringIO()
 
-    def save_dataframe(self, df: pd.DataFrame) -> None:
-        df.to_csv(self._path_or_buf, index=False)
-
-    def retrieve_dataframe(
-            self,
-            *,
-            dt_from: pd.Timestamp,
-            dt_to: pd.Timestamp
-    ) -> pd.DataFrame:
+    def save_dataframe(self, df: pd.DataFrame, file_name: str) -> None:
         if self._in_memory:
-            self._path_or_buf.seek(0)
+            if self._buf is None:
+                raise ValueError("Buffer is not initialized")
 
-        try:
-            df = pd.read_csv(self._path_or_buf, parse_dates=["_time"])
-            return df[df["_time"].between(dt_from, dt_to, inclusive="both")]
-        except FileNotFoundError:
-            raise LoaderError("Dataframe cannot be retrieved")
+            df.to_csv(self._buf, index=False)
+            return
+
+        df.to_csv(file_name, index=False)
+
+    def retrieve_dataframe(self, file_name: str) -> pd.DataFrame:
+        if self._in_memory:
+            if self._buf is None:
+                raise ValueError("Buffer is not initialized")
+
+            self._buf.seek(0)
+            return pd.read_csv(self._buf, parse_dates=["_time"])
+
+        return pd.read_csv(file_name, parse_dates=["_time"])

@@ -1,30 +1,25 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+import pandas as pd
 
 from data.loaders.base_loader import BaseLoader
 from data.loaders.exceptions import LoaderError
-
-if TYPE_CHECKING:
-    from pandas import DataFrame, Timestamp
 
 
 class DummyLoader(BaseLoader):
     """
     Dummy loader class for testing purposes.
     """
-    _df: DataFrame | None = None
+    _df: pd.DataFrame = pd.DataFrame()
 
-    def save_dataframe(self, df: DataFrame) -> None:
-        self._df = df
+    def save_dataframe(self, df: pd.DataFrame, file_name: str) -> None:
+        df["file_name"] = file_name
+        self._df = pd.concat([self._df, df], ignore_index=True, sort=False)
 
-    def retrieve_dataframe(
-            self,
-            *,
-            dt_from: Timestamp,
-            dt_to: Timestamp
-    ) -> DataFrame:
+    def retrieve_dataframe(self, file_name: str) -> pd.DataFrame:
         if self._df is None:
             raise LoaderError("Dataframe cannot be retrieved")
 
-        return self._df[self._df["_time"].between(dt_from, dt_to, inclusive="both")]
+        df = self._df[self._df["file_name"] == file_name]
+        df = df.drop(columns=["file_name"])
+        return df
