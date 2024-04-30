@@ -25,9 +25,12 @@ class OpendapExtractorL2Standard(BaseOpendapExtractor):
     def extract_date_range(
             self,
             date_range: Iterable[datetime.date]
-    ) -> Iterator[pd.DataFrame]:
+    ) -> Iterator[tuple[datetime.date, pd.DataFrame]]:
         for date in date_range:
-            yield self.extract_date(date)  # TODO: `continue` / `raise` on error?
+            try:
+                yield date, self.extract_date(date)
+            except Exception as e:
+                logger.error("Error processing date %s: %s", date, e)
 
     def extract_date(self, date: datetime.date) -> pd.DataFrame:
         try:

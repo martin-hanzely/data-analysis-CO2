@@ -23,5 +23,6 @@ class DummyExtractor(BaseExtractor):
     def extract_date_range(
             self,
             date_range: Iterable[datetime.date]
-    ) -> Iterator[pd.DataFrame]:
-        yield self._df
+    ) -> Iterator[tuple[datetime.date, pd.DataFrame]]:
+        for date in date_range:
+            yield date, self._df

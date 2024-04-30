@@ -22,7 +22,7 @@ class OpendapExtractorL2LiteFP(BaseOpendapExtractor):
     """
     Extractor class for data from the NASA Earth Data GES DISC OPeNDAP server.
     """
-    def extract_date_range(self, date_range: Iterable[datetime.date]) -> Iterator[pd.DataFrame]:
+    def extract_date_range(self, date_range: Iterable[datetime.date]) -> Iterator[tuple[datetime.date, pd.DataFrame]]:
         date_list = list(date_range)
         if len(date_list) < 1:
             yield from ()
@@ -32,18 +32,21 @@ class OpendapExtractorL2LiteFP(BaseOpendapExtractor):
 
         seen_years = {base_year}
         for date in date_list:
-            if date.year not in seen_years:
-                seen_years.add(date.year)
-                opendap_urls_dict |= self.get_opendap_urls_dict_for_year(date.year)
+            try:
+                if date.year not in seen_years:
+                    seen_years.add(date.year)
+                    opendap_urls_dict |= self.get_opendap_urls_dict_for_year(date.year)
 
-            date_str = date.strftime("%y%m%d")
-            url = opendap_urls_dict.get(date_str)
-            if url is None:
-                logger.warning("No OPeNDAP URL found for date %s", date_str)
-                continue
+                date_str = date.strftime("%y%m%d")
+                url = opendap_urls_dict.get(date_str)
+                if url is None:
+                    logger.warning("No OPeNDAP URL found for date %s", date_str)
+                    continue
 
-            logger.info("Extracting data from OPeNDAP URL %s", url)
-            yield self.get_dataframe_from_opendap_url(url)
+                logger.info("Extracting data from OPeNDAP URL %s", url)
+                yield date, self.get_dataframe_from_opendap_url(url)
+            except Exception as e:
+                logger.error("Error processing date %s: %s", date, e)
 
     def get_thredds_catalog_url_for_year(self, year: int) -> str:
         home_dir = "opendap/OCO2_L2_Lite_FP.11.1r"

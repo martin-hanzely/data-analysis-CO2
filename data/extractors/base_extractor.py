@@ -18,7 +18,7 @@ class BaseExtractor(ABC):
     def extract_date_range(
             self,
             date_range: Iterable[datetime.date]
-    ) -> Iterator[pd.DataFrame]:
+    ) -> Iterator[tuple[datetime.date, pd.DataFrame]]:
         """
         Extract data for given date range.
         :param date_range: Iterable of dates.
