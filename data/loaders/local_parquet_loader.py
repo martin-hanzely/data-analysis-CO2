@@ -5,7 +5,7 @@ import pandas as pd
 from data.loaders.base_loader import BaseLoader
 
 
-class FileLoader(BaseLoader):
+class LocalParquetLoader(BaseLoader):
     """
     Local Parquet loader class.
     """
