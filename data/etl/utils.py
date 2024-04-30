@@ -1,7 +1,7 @@
 from data.conf import get_app_settings
 from data.etl.etl_pipeline import ETLPipeline
 from data.extractors.utils import get_opendap_extractor_class
-from data.loaders.influxdb_loader import InfluxDBLoader
+from data.loaders.s3_parquet_loader import S3ParquetLoader
 from data.utils.opendap import OpendapClient
 
 
@@ -18,7 +18,7 @@ def pipeline_factory(extractor_class: str) -> ETLPipeline:
     settings = get_app_settings()
     etl_pipeline = ETLPipeline(
         extract_strategy=ExtractorCls(settings=settings, client=OpendapClient()),
-        load_strategy=InfluxDBLoader(settings=settings)
+        load_strategy=S3ParquetLoader(settings=settings)
     )
 
     return etl_pipeline
