@@ -248,3 +248,6 @@ influxdb2-data/
 
 # diskcache
 cache/
+
+# Local project files
+out_/
