@@ -15,12 +15,15 @@ pydantic-settings = "*"
 requests = "*"
 sentry-sdk = {extras = ["flask"], version = "*"}
 typer = {extras = ["all"], version = "*"}
+fastparquet = "*"
+boto3 = "*"
 
 [dev-packages]
 coverage = "*"
 pytest = "*"
 testcontainers-core = "*"
 dash = {extras = ["diskcache", "testing"], version = "*"}
+mypy-boto3-s3 = "*"
 
 [requires]
 python_version = "3.11"
