@@ -3,18 +3,16 @@ from __future__ import annotations
 import datetime as dt
 import logging
 import uuid
-from typing import TYPE_CHECKING, Any, Callable, TypedDict
+from typing import Any, Callable, TypedDict
 
 import dash
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 import sentry_sdk
 
 from data.conf import get_app_settings
 from data.loaders.s3_parquet_loader import S3ParquetLoader
-
-if TYPE_CHECKING:
-    from plotly.graph_objs import Figure
 
 
 class CallbackManagerCacheSettings(TypedDict):
@@ -68,21 +66,21 @@ server = app.server
 loader = S3ParquetLoader(settings=settings)
 
 # region FIGURES
-df = loader.retrieve_dataframe("out_/oco2_daily_avg.gzip")
-df["date"] = pd.to_datetime(df["date"], errors="coerce")
+df = loader.retrieve_dataframe("oco2_daily_avg.gzip")
+df["_date"] = pd.to_datetime(df["_date"], errors="coerce")
 # TODO: Pass datetime columns to the loader and let it handle the conversion.
 
 # Global daily average 2023 and 2024
-df["normalized_date"] = pd.to_datetime(df["date"].dt.strftime("%d-%b-1900"), errors="coerce")
-df["year"] = df["date"].dt.year
+df["normalized_date"] = pd.to_datetime(df["_date"].dt.strftime("%d-%b-1900"), errors="coerce")
+df["year"] = df["_date"].dt.year
 global_daily_avg_2023_2024 = px \
     .line(
         df,
         x="normalized_date",
-        y="average",
+        y="xco2",
         color="year",
         title="Porovnanie priemerných denných hodnôt XCO2 v roku 2023 a 2024",
-        labels={"normalized_date": "Dátum", "average": "XCO2 (ppm)", "year": "Rok"},
+        labels={"normalized_date": "Dátum", "xco2": "XCO2 (ppm)", "year": "Rok"},
     ) \
     .update_layout(xaxis={"dtick": "M1", "tickformat": "%d-%b"})
 
@@ -90,35 +88,35 @@ global_daily_avg_2023_2024 = px \
 global_daily_avg_since_2023 = px \
     .line(
         df,
-        x="date",
-        y="average",
+        x="_date",
+        y="xco2",
         title="Priemerná denná hodnota XCO2 od 2023-01-01",
-        labels={"date": "Dátum", "average": "XCO2 (ppm)"},
+        labels={"_date": "Dátum", "xco2": "XCO2 (ppm)"},
     ) \
     .update_xaxes(rangeslider_visible=True)
 
 # Daily average in 2023 global / EU / SK
 daily_avg_glob_eu_sk = px.scatter(
     df,
-    x="date",
+    x="_date",
     y=df.columns[1:4],
     title="Porovnanie priemerných denných hodnôt XCO2 v roku 2023",
-    labels={"date": "Dátum", "value": "XCO2 (ppm)", "variable": "Región"},
+    labels={"_date": "Dátum", "value": "XCO2 (ppm)", "variable": "Región"},
 )
 
-# Daily average MLO since 1975-01-01
-df_mlo = loader.retrieve_dataframe("out_/mlo.gzip")
-df_mlo["date"] = pd.to_datetime(df_mlo["date"], errors="coerce")
-mlo_since_1975 = px.line(
+# Daily average MLO since 1976
+df_mlo = loader.retrieve_dataframe("mlo.gzip")
+df_mlo["_date"] = pd.to_datetime(df_mlo["_date"], errors="coerce")
+mlo_since_1976 = px.line(
     df_mlo,
-    x="date",
-    y="value",
-    title="Priemerná denná hodnota CO2 na MLO od 1975-01-01",
-    labels={"date": "Dátum", "value": "CO2 (ppm)"},
+    x="_date",
+    y="co2",
+    title="Priemerná denná hodnota CO2 na MLO od roku 1976 do 2022",
+    labels={"_date": "Dátum", "co2": "CO2 (ppm)"},
 )
 
 # Global monthly average per whole latitude and longitude
-df_avg_per_month_lat_lon = loader.retrieve_dataframe("out_/monthly_avg_per_lat_lon.gzip")
+df_avg_per_month_lat_lon = loader.retrieve_dataframe("monthly_avg_per_lat_lon.gzip")
 _min = df_avg_per_month_lat_lon["xco2"].min()
 _max = df_avg_per_month_lat_lon["xco2"].max()
 
@@ -137,19 +135,20 @@ app.layout = dash.html.Div(
                 dash.html.P("Analýza a vizualizácia obsahu oxidu uhličitého v zemskej atmosfére na základe verejne dostupných dát v súvislosti so zmenami klímy."),
             ],
         ),
-        dash.html.Div(  # Graphs.
+        dash.html.Div(  # Figures.
             className="row row-cols-1 row-cols-lg-2",
             children=[
                 dash.html.Div(dash.dcc.Graph(figure=global_daily_avg_2023_2024), className="col"),
                 dash.html.Div(dash.dcc.Graph(figure=global_daily_avg_since_2023), className="col"),
                 dash.html.Div(dash.dcc.Graph(figure=daily_avg_glob_eu_sk), className="col"),
-                dash.html.Div(dash.dcc.Graph(figure=mlo_since_1975), className="col"),
+                dash.html.Div(dash.dcc.Graph(figure=mlo_since_1976), className="col"),
+                dash.dcc.Graph(id="avg-per-month-lat-lon-surface", className="col", style={"height": "90vh"}),
+                dash.dcc.Graph(id="avg-per-month-lat-lon-globe", className="col", style={"height": "90vh"}),
             ]
         ),
-        dash.html.Div(  # Globe.
+        dash.html.Div(  # Sliders.
             className="mx-3",
             children=[
-                dash.dcc.Graph(id="avg-per-month-lat-lon", style={"height": "100vh"}),
                 dash.html.Div(
                     className="row",
                     children=[
@@ -199,7 +198,8 @@ app.layout = dash.html.Div(
 
 
 @dash.callback(
-    dash.Output(component_id="avg-per-month-lat-lon", component_property="figure"),
+    dash.Output(component_id="avg-per-month-lat-lon-surface", component_property="figure"),
+    dash.Output(component_id="avg-per-month-lat-lon-globe", component_property="figure"),
     dash.Input(component_id="year-slider", component_property="value"),
     dash.Input(component_id="month-slider", component_property="value"),
     background=True,
@@ -208,12 +208,29 @@ app.layout = dash.html.Div(
         (dash.Output(component_id="month-slider", component_property="disabled"), True, False),
     ]
 )
-def update_graph(year: int, month: int) -> Figure:
+def update_graph(year: int, month: int) -> tuple[go.Figure, go.Figure]:
     df_ = df_avg_per_month_lat_lon.loc[
         (df_avg_per_month_lat_lon["year"] == year) &
         (df_avg_per_month_lat_lon["month"] == month)
     ]
-    fig = px.scatter_geo(
+
+    _title = f"Priemerná mesačná hodnota XCO2 za mesiac {year}-{month:02d}"
+    # Surface plot.
+    fig_surface = px.scatter_3d(
+        df_,
+        x="longitude",
+        y="latitude",
+        z="xco2",
+        color="xco2",
+        range_color=[_min, _max],
+        color_continuous_scale="jet",
+        hover_data=["xco2"],
+        title=_title,
+        labels={"xco2": "XCO2 (ppm)"},
+    )
+
+    # Globe plot.
+    fig_globe = px.scatter_geo(
         df_,
         lat="latitude",
         lon="longitude",
@@ -221,9 +238,13 @@ def update_graph(year: int, month: int) -> Figure:
         range_color=[_min, _max],
         color_continuous_scale="jet",
         hover_data=["xco2"],
-        title="Priemerná mesačná hodnota XCO2 na celé číslo zemepisnej šírky a dĺžky",
+        title=_title,
         labels={"xco2": "XCO2 (ppm)"},
     )
-    fig.update_geos(projection_type="orthographic")
+    fig_globe.update_geos(
+        projection_type="orthographic",
+        lataxis_showgrid=True,
+        lonaxis_showgrid=True,
+    )
 
-    return fig
+    return fig_surface, fig_globe
