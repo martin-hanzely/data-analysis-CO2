@@ -66,3 +66,24 @@ from(bucket: "{self._bucket}")
 
             df = df.drop(columns=["table", "result"])
             return df
+
+    def retrieve_dataframe_for_date_range(
+            self,
+            *,
+            dt_from: pd.Timestamp,
+            dt_to: pd.Timestamp
+    ) -> pd.DataFrame:
+        with influxdb.InfluxDBClient(**self._client_kwargs) as _client:
+            _dt_format = "%Y-%m-%dT%H:%M:%S.%fZ"
+            query = f"""\
+from(bucket: "{self._bucket}")
+|> range(start: {dt_from.strftime(_dt_format)}, stop: {dt_to.strftime(_dt_format)})
+|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
+|> keep(columns:["_time", "latitude", "longitude", "xco2"])"""
+
+            df = _client.query_api().query_data_frame(query)
+            if df.empty:
+                return pd.DataFrame(columns=["_time", "latitude", "longitude", "xco2"])
+
+            df = df.drop(columns=["table", "result"])
+            return df

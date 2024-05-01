@@ -46,5 +46,15 @@ def dash_app() -> None:
     dash_app_.run(debug=True)
 
 
+@app.command()
+def move_influxdb_to_s3() -> None:
+    """
+    Move InfluxDB data to S3.
+    """
+    from data.utils import move_influxdb_to_s3 as move_influxdb_to_s3_
+
+    move_influxdb_to_s3_()
+
+
 if __name__ == "__main__":
     app()
