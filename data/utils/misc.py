@@ -25,6 +25,7 @@ def move_influxdb_to_s3():
         try:
             logger.info(f"Moving {date}")
             df = influxdb_loader.retrieve_dataframe_for_date_range(dt_from=date, dt_to=dt_to)
+            df["_time"] = df["_time"].astype(str)  # Convert to string to avoid parquet issues.
             s3_loader.save_dataframe(df, f"{date.date().isoformat()}.gzip")
         except Exception as exc:
             logger.error(f"Failed to move {date}: {exc}")
