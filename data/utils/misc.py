@@ -17,8 +17,8 @@ def move_influxdb_to_s3():
     influxdb_loader = InfluxDBLoader(settings)
     s3_loader = S3ParquetLoader(settings)
 
-    date = pd.Timestamp("2024-03-01T00:00:00Z")
-    date_stop = pd.Timestamp("2024-04-30T00:00:00Z")
+    date = pd.Timestamp("2024-03-01T00:00:00Z", tz="UTC")
+    date_stop = pd.Timestamp("2024-04-30T00:00:00Z", tz="UTC")
 
     while date < date_stop:
         dt_to = date + pd.Timedelta(days=1)
