@@ -46,5 +46,21 @@ def dash_app() -> None:
     dash_app_.run(debug=True)
 
 
+@app.command()
+def analyse() -> None:
+    """
+    Run utility function.
+    """
+    from data.analyse import oco2_daily_avg, monthly_avg_per_lat_lon
+    from data.conf import get_app_settings
+    from data.loaders.s3_parquet_loader import S3ParquetLoader
+
+    settings = get_app_settings()
+    loader = S3ParquetLoader(settings)
+
+    oco2_daily_avg(loader)
+    monthly_avg_per_lat_lon(loader)
+
+
 if __name__ == "__main__":
     app()
