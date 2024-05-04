@@ -49,10 +49,10 @@ class ETLPipeline:
         """
         for _date, _df in self._extract(date_range):
             try:
-                self._load(
-                    self._transform(_df),
-                    f"{self._dir}/{_date.isoformat()}.gzip"
-                )
+                file_name = f"{_date.isoformat()}.gzip"
+                if self._dir:
+                    file_name = f"{self._dir}/{file_name}"
+                self._load(self._transform(_df), file_name)
             except Exception as e:
                 # Do not break!
                 logger.error("Error processing date %s: %s", _date, e)
