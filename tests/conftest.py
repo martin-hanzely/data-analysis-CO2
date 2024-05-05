@@ -26,6 +26,11 @@ def dummy_settings() -> Settings:
         influxdb_bucket="data-analysis-CO2",
 
         sentry_dsn="",
+
+        aws_access_key_id="",
+        aws_secret_access_key="",
+        aws_region="",
+        aws_s3_bucket_name="",
     )
 
 
@@ -40,5 +45,4 @@ def dummy_df() -> pd.DataFrame:
         "latitude": [-0.1, 0.0, 0.1],
         "longitude": [0.1, 0.0, -0.1],
         "xco2": [420.1, 420.0, 420.1],
-        "country": ["NA", "SK", "NA"],
     })

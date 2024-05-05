@@ -32,7 +32,6 @@ class TestInfluxDBLoader:
             "latitude": [-0.1, 0.1, 0.2, 0.1],
             "longitude": [0.1, 0.2, 0.1, -0.1],
             "xco2": [420.1, 420.0, 421.0, 420.1],
-            "country": ["NA", "NA", "SK", "NA"],
         })
 
         expected_df = pd.DataFrame({
@@ -40,12 +39,11 @@ class TestInfluxDBLoader:
             "latitude": [0.1, 0.2],
             "longitude": [0.2, 0.1],
             "xco2": [420.0, 421.0],
-            "country": ["NA", "SK"],
         })
 
         loader = InfluxDBLoader(settings=dummy_settings)
-        loader.save_dataframe(df=dummy_df)
-        loaded_df = loader.retrieve_dataframe(
+        loader.save_dataframe(df=dummy_df, file_name="2024-01-01")
+        loaded_df = loader.retrieve_dataframe_for_date_range(
             dt_from=pd.to_datetime("2024-01-01T01:30", utc=True),
             dt_to=pd.to_datetime("2024-01-01T02:30", utc=True),
         )
@@ -57,8 +55,8 @@ class TestInfluxDBLoader:
         assert isinstance(dummy_df, pd.DataFrame) and len(dummy_df) > 0  # Sanity check
 
         loader = InfluxDBLoader(settings=dummy_settings)
-        loader.save_dataframe(df=dummy_df)
-        loaded_df = loader.retrieve_dataframe(
+        loader.save_dataframe(df=dummy_df, file_name="2024-01-01")
+        loaded_df = loader.retrieve_dataframe_for_date_range(
             dt_from=pd.to_datetime("2020-01-01T00:00", utc=True),
             dt_to=pd.to_datetime("2020-01-01T01:00", utc=True),
         )
