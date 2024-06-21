@@ -9,10 +9,6 @@ services:
             - CELERY_ENABLED=${CELERY_ENABLED}
             - CELERY_BROKER_URL=${CELERY_BROKER_URL}
             - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
-            - INFLUXDB_URL=${INFLUXDB_URL}
-            - INFLUXDB_TOKEN=${INFLUXDB_TOKEN}
-            - INFLUXDB_ORG=${INFLUXDB_ORG}
-            - INFLUXDB_BUCKET=${INFLUXDB_BUCKET}
             - SENTRY_DSN=${SENTRY_DSN}
             - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
             - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
@@ -23,7 +19,6 @@ services:
         volumes:
             - .:/app
         depends_on:
-            - influxdb
             - redis
 
     celery-worker:
@@ -38,10 +33,6 @@ services:
             - EARTHDATA_PASSWORD=${EARTHDATA_PASSWORD}
             - CELERY_BROKER_URL=${CELERY_BROKER_URL}
             - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
-            - INFLUXDB_URL=${INFLUXDB_URL}
-            - INFLUXDB_TOKEN=${INFLUXDB_TOKEN}
-            - INFLUXDB_ORG=${INFLUXDB_ORG}
-            - INFLUXDB_BUCKET=${INFLUXDB_BUCKET}
             - SENTRY_DSN=${SENTRY_DSN}
             - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
             - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
@@ -50,24 +41,7 @@ services:
         volumes:
             - .:/app
         depends_on:
-            - influxdb
             - redis
-
-    influxdb:
-        container_name: influxdb2
-        image: influxdb:2.7.4-alpine
-        environment:
-            - DOCKER_INFLUXDB_INIT_MODE=setup
-            - DOCKER_INFLUXDB_INIT_USERNAME=${DOCKER_INFLUXDB_INIT_USERNAME}
-            - DOCKER_INFLUXDB_INIT_PASSWORD=${DOCKER_INFLUXDB_INIT_PASSWORD}
-            - DOCKER_INFLUXDB_INIT_ORG=${DOCKER_INFLUXDB_INIT_ORG}
-            - DOCKER_INFLUXDB_INIT_BUCKET=${DOCKER_INFLUXDB_INIT_BUCKET}
-            - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN}
-            - INFLUXD_UI_DISABLED=${INFLUXD_UI_DISABLED}
-        ports:
-            - "8086:8086"
-        volumes:
-            - /mnt/influxdb2/data:/var/lib/influxdb2:rw
 
     redis:
         container_name: redis
