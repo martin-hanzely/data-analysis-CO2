@@ -62,7 +62,7 @@ class OpendapExtractorL2Standard(BaseOpendapExtractor):
         return df
 
     def get_thredds_catalog_url_for_date(self, date: datetime.date) -> str:
-        home_dir = "opendap/OCO2_L2_Standard.11"
+        home_dir = "opendap/OCO2_L2_Standard.11.2"
         year = date.year
         doy = date.timetuple().tm_yday
         return f"{self._settings.earthdata_base_url}/{home_dir}/{year}/{doy:03}/catalog.xml"
