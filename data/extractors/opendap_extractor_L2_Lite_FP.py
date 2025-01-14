@@ -49,7 +49,7 @@ class OpendapExtractorL2LiteFP(BaseOpendapExtractor):
                 logger.error("Error processing date %s: %s", date, e)
 
     def get_thredds_catalog_url_for_year(self, year: int) -> str:
-        home_dir = "opendap/OCO2_L2_Lite_FP.11.1r"
+        home_dir = "opendap/OCO2_L2_Lite_FP.11.2r"
         return f"{self._settings.earthdata_base_url}/{home_dir}/{year}/catalog.xml"
 
     def get_dataframe_from_opendap_url(self, url: str) -> pd.DataFrame:
